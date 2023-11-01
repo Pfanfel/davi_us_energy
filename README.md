@@ -1,6 +1,8 @@
 # davi_us_energy
 
-Practical project for the data visualization course from Hans-Jörg Schulz at Aarhus University
+Practical project for the data visualization course from [Hans-Jörg Schulz](https://cs.au.dk/~hjschulz/) at Aarhus University.
+
+The project uses [plotly dash](https://dash.plotly.com/) and the repository is using [following project structure](https://community.plotly.com/t/structuring-a-large-dash-application-best-practices-to-follow/62739).
 
 ---
 
@@ -16,7 +18,7 @@ Practical project for the data visualization course from Hans-Jörg Schulz at Aa
 
 ## Data
 
-The main datascource comes from XXX (documentation can be found here: https://www.eia.gov/state/seds/seds-technical-notes-complete.php)
+The main datascource comes from XXX. The documentation for this dataset can be found [here](https://www.eia.gov/state/seds/seds-technical-notes-complete.php).
 
 Aditional datasources include:
 
