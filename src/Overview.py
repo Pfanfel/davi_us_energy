@@ -13,8 +13,7 @@ from dash.dependencies import Input, Output, ALL, State
 app = dash.Dash(__name__)
 app.config['suppress_callback_exceptions'] = True
 
-# Incorporate data
-df = pd.read_csv("data/stads_data_parsed_cleaned_pop_gdp_v1.csv")
+
 
 fake_data = {
     "Top Level": [
@@ -306,34 +305,3 @@ def watch_sidebar_children(ul_children):
     leaves = get_leaves_below_sidebar_obj(ul_children, path_to_obj=tuple())
     checked_leaves = get_checked_leaves(leaves)
     return ", ".join(checked_leaves)
-
-# Define the dash app layout
-app.layout = html.Div(
-    [
-html.Div(
-            children="Awesome Data Visualization for US Energy Production and Consumption by State"
-        ),
-        html.Div(id='checked-items',
-                         children=[
-                             html.H1("Selected categories"),
-                             html.P(id="checked-items-p")
-                         ]),
-        html.Div(id="sidebar-div",
-                 children=make_sidebar_ul(fake_data,
-                                          "Top Level",
-                                          )
-                 ),
-        dash_table.DataTable(data=df.to_dict("records"), page_size=10),
-    ]
-)
-
-if __name__ == '__main__':
-    # Hacky way to auto pick a port
-    ports = range(8850, 8860, 1)
-    for port in ports:
-        try:
-            print(f"TRYING PORT {port}")
-            app.run_server(debug=True, port=port)
-        except OSError:
-            continue
-        break
