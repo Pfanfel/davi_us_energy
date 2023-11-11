@@ -3,7 +3,7 @@ from dash import Dash, html, dash_table
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 import dash
-from components import navbar, footer
+from components import navbar, footer, timeSlider
 import feffery_antd_components as fac
 import pandas as pd
 from dash import Input, Output, State, ALL
@@ -71,7 +71,7 @@ def CreateCategoryFilteringTree(categories, id, placeHolder):
 # define the navbar and footer
 nav = navbar.Navbar()
 footer = footer.Footer()
-
+timeSlider = timeSlider.TimeSlider()
 data_table = dash_table.DataTable(
     id='stads_id',
     data=data.stads_df.to_dict('records'),
@@ -87,6 +87,43 @@ energy_activity_filter = CreateCategoryFilteringTree(data.energy_activities, dat
 energy_activity_filter.className = "category-tree"
 
 
+# Combine both callbacks to update checkbox options and uncheck the checkbox
+@app.callback(
+    Output('confirm-checkbox', 'options'),
+    Output('confirm-checkbox', 'value'),
+    Input('year-slider', 'value')
+)
+def update_checkbox_options_and_uncheck(value):
+    return ([{'label': 'Confirm Selection', 'value': 'confirm'}], []) if value else ([], [])
+
+@app.callback(
+    Output('year-slider', 'disabled'),
+    Output('year-slider', 'value'),
+    Output('year-toggle', 'label'),  # Add an Output for the label
+    Input('year-toggle', 'on')
+)
+def update_slider_state(on):
+    label = setLabel(on)  # Calculate the label based on the toggle state
+    if on:
+        return False, [1960], label  # Return label as a part of the tuple
+    else:
+        return False, [1960, 2021], label  # Return label as a part of the tuple
+
+def setLabel(on):
+    if on:
+        return 'Select Year'
+    else:
+        return 'Select Time Interval'
+
+
+def update_slider_state(on):
+    label = setLabel(on)  # Calculate the label based on the toggle state
+    if on:
+        return False, [1960], label
+    else:
+        return False, [1960, 2021], label
+
+
 # set the main layout
 app.layout = html.Div(
     [
@@ -94,6 +131,7 @@ app.layout = html.Div(
         html.Div([energy_types_filter, html.Div(style={'width': '20px'}), energy_activity_filter],
                  style={'display': 'flex'}),
         data_table,
+        timeSlider,
         footer,
     ]
 )
