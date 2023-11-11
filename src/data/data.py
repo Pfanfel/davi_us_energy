@@ -13,153 +13,193 @@ gdp_by_year_df = pd.read_csv("data/gdp_year.csv")
 
 # Hardcoded list of values for a ui element
 
+col_names = ['energy_type', 'energy_activity']
+
+
 energy_activities = [
     {
-        'title': "Energy Generation",
-        'key': "Energy Generation",
+        'title': "energy activities",
+        'key': "energy_activity",
+        'value': "energy_activity",
         'children': [
             {
-                'title': "Production",
-                'key': "Production",
+                'title': "energy generation",
+                'key': "energy generation",
+                'value': "energy generation",
                 'children': [
                     {
-                        'title': "Marketed Production",
-                        'key': "Marketed Production"
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        'title': "Energy Consumption",
-        'key': "Energy Consumption",
-        'children': [
-            {
-                'title': "Total Consumption of All Energy-Consuming Sectors",
-                'key': "Total Consumption of All Energy-Consuming Sectors",
-                'children': [
-                    {
-                        'title': "Residential Sector Consumption",
-                        'key': "Residential Sector Consumption"
-                    },
-                    {
-                        'title': "Commercial Sector Consumption",
-                        'key': "Commercial Sector Consumption"
-                    },
-                    {
-                        'title': "Industrial Sector Consumption",
-                        'key': "Industrial Sector Consumption"
-                    },
-                    {
-                        'title': "Transportation Sector Consumption",
-                        'key': "Transportation Sector Consumption"
+                        'title': "production",
+                        'key': "production",
+                        'value': "production",
+                        'children': [
+                            {
+                                'title': "marketed production",
+                                'key': "marketed production",
+                                'value': "marketed production"
+                            }
+                        ]
                     }
                 ]
             },
             {
-                'title': "Total Consumption for Electricity Generation (Nuclear Only)",
-                'key': "Total Consumption for Electricity Generation (Nuclear Only)"
-            }
-        ]
-    },
-    {
-        'title': "Interstate Flow (Electricity Only)",
-        'key': "Interstate Flow (Electricity Only)"
-    },
-    {
-        'title': "Net Imports",
-        'key': "Net Imports"
-    },
-    {
-        'title': "Energy Losses and Co-Products (Biofuels Only)",
-        'key': "Energy Losses and Co-Products (Biofuels Only)"
-    }
-]
-
-
-# tree structure of the energy types
-energy_categories_types = [
-    {
-        'title': "Energy Types",
-        'key': "Energy Types",
-        'children': [
-            {
-                'title': "Renewable Energy",
-                'key': "Renewable Energy",
+                'title': "energy consumption",
+                'key': "energy consumption",
+                'value': "energy consumption",
                 'children': [
                     {
-                        'title': "Renewable Diesel",
-                        'key': "Renewable Diesel"
-                    },
-                    {
-                        'title': "Biodiesel",
-                        'key': "Biodiesel"
-                    },
-                    {
-                        'title': "Biofuels",
-                        'key': "Biofuels"
-                    },
-                    {
-                        'title': "Biomass",
-                        'key': "Biomass",
+                        'title': "total consumption of all energy-consuming sectors",
+                        'key': "total consumption of all energy-consuming sectors",
+                        'value': "total consumption of all energy-consuming sectors",
                         'children': [
                             {
-                                'title': "Wood and Waste",
-                                'key': "Wood and Waste"
+                                'title': "residential sector consumption",
+                                'key': "residential sector consumption",
+                                'value': "residential sector consumption"
                             },
                             {
-                                'title': "Fuel Ethanol, Excluding Denaturant",
-                                'key': "Fuel Ethanol, Excluding Denaturant"
+                                'title': "commercial sector consumption",
+                                'key': "commercial sector consumption",
+                                'value': "commercial sector consumption"
+                            },
+                            {
+                                'title': "industrial sector consumption",
+                                'key': "industrial sector consumption",
+                                'value': "industrial sector consumption"
+                            },
+                            {
+                                'title': "transportation sector consumption",
+                                'key': "transportation sector consumption",
+                                'value': "transportation sector consumption"
                             }
                         ]
                     },
                     {
-                        'title': "Geothermal Energy",
-                        'key': "Geothermal Energy"
-                    },
-                    {
-                        'title': "Hydroelectric Power",
-                        'key': "Hydroelectric Power"
-                    },
-                    {
-                        'title': "Photovoltaic and Solar Thermal Energy",
-                        'key': "Photovoltaic and Solar Thermal Energy"
-                    },
-                    {
-                        'title': "Wind",
-                        'key': "Wind"
+                        'title': "total consumption for electricity generation (nuclear only)",
+                        'key': "total consumption for electricity generation (nuclear only)",
+                        'value': "total consumption for electricity generation (nuclear only)"
                     }
                 ]
             },
             {
-                'title': "Fossil Fuels",
-                'key': "Fossil Fuels",
+                'title': "interstate flow (electricity only)",
+                'key': "interstate flow (electricity only)",
+                'value': "interstate flow (electricity only)"
+            },
+            {
+                'title': "net imports",
+                'key': "net imports",
+                'value': "net imports"
+            },
+            {
+                'title': "energy losses and co-products (biofuels only)",
+                'key': "energy losses and co-products (biofuels only)",
+                'value': "energy losses and co-products (biofuels only)"
+            }
+        ]
+    }
+]
+
+energy_categories_types = [
+    {
+        'title': "energy types",
+        'key': "energy_type",
+        'value': "energy_type",
+        'children': [
+            {
+                'title': "renewable energy",
+                'key': "renewable energy",
+                'value': "renewable energy",
                 'children': [
                     {
-                        'title': "Coal",
-                        'key': "Coal"
+                        'title': "renewable diesel",
+                        'key': "renewable diesel",
+                        'value': "renewable diesel"
                     },
                     {
-                        'title': "Natural Gas, Including Supplemental Gaseous Fuels",
-                        'key': "Natural Gas, Including Supplemental Gaseous Fuels"
+                        'title': "biodiesel",
+                        'key': "biodiesel",
+                        'value': "biodiesel"
                     },
                     {
-                        'title': "Natural Gas, Excluding Supplemental Gaseous Fuels",
-                        'key': "Natural Gas, Excluding Supplemental Gaseous Fuels"
+                        'title': "biofuels",
+                        'key': "biofuels",
+                        'value': "biofuels"
+                    },
+                    {
+                        'title': "biomass",
+                        'key': "biomass",
+                        'value': "biomass",
+                        'children': [
+                            {
+                                'title': "wood and waste",
+                                'key': "wood and waste",
+                                'value': "wood and waste"
+                            },
+                            {
+                                'title': "fuel ethanol, excluding denaturant",
+                                'key': "fuel ethanol, excluding denaturant",
+                                'value': "fuel ethanol, excluding denaturant"
+                            }
+                        ]
+                    },
+                    {
+                        'title': "geothermal energy",
+                        'key': "geothermal energy",
+                        'value': "geothermal energy"
+                    },
+                    {
+                        'title': "hydroelectric power",
+                        'key': "hydroelectric power",
+                        'value': "hydroelectric power"
+                    },
+                    {
+                        'title': "photovoltaic and solar thermal energy",
+                        'key': "photovoltaic and solar thermal energy",
+                        'value': "photovoltaic and solar thermal energy"
+                    },
+                    {
+                        'title': "wind",
+                        'key': "wind",
+                        'value': "wind"
                     }
                 ]
             },
             {
-                'title': "Nuclear Electric Power",
-                'key': "Nuclear Electric Power"
-            },
-            {
-                'title': "All Petroleum Products",
-                'key': "All Petroleum Products",
+                'title': "fossil fuels",
+                'key': "fossil fuels",
+                'value': "fossil fuels",
                 'children': [
                     {
-                        'title': "All Petroleum Products Excluding Ethanol Blended into Motor Gasoline",
-                        'key': "All Petroleum Products Excluding Ethanol Blended into Motor Gasoline"
+                        'title': "coal",
+                        'key': "coal",
+                        'value': "coal"
+                    },
+                    {
+                        'title': "natural gas, including supplemental gaseous fuels",
+                        'key': "natural gas, including supplemental gaseous fuels",
+                        'value': "natural gas, including supplemental gaseous fuels"
+                    },
+                    {
+                        'title': "natural gas, excluding supplemental gaseous fuels",
+                        'key': "natural gas, excluding supplemental gaseous fuels",
+                        'value': "natural gas, excluding supplemental gaseous fuels"
+                    }
+                ]
+            },
+            {
+                'title': "nuclear electric power",
+                'key': "nuclear electric power",
+                'value': "nuclear electric power"
+            },
+            {
+                'title': "all petroleum products",
+                'key': "all petroleum products",
+                'value': "all petroleum products",
+                'children': [
+                    {
+                        'title': "all petroleum products excluding ethanol blended into motor gasoline",
+                        'key': "all petroleum products excluding ethanol blended into motor gasoline",
+                        'value': "all petroleum products excluding ethanol blended into motor gasoline"
                     }
                 ]
             }
@@ -167,6 +207,8 @@ energy_categories_types = [
     }
 ]
 
+
+category_trees = [energy_activities, energy_categories_types]
 
 
 # For derived values or values that need to be calculated from the data
