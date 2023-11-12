@@ -8,10 +8,7 @@ import feffery_antd_components as fac
 import pandas as pd
 from dash import Input, Output, State, ALL
 from src.helpers.filter import find_root_node, filterData
-from src.data import data
-
-
-
+from src.data import data as dt
 
 # Initialize the app
 app = dash.Dash(
@@ -34,26 +31,50 @@ app = dash.Dash(
 
 @app.callback(
     Output('stads_id', 'data'),
-    Input(data.col_names[0], 'value'),
-    Input(data.col_names[1], 'value'),
+    Input(dt.col_names[0], 'value'),
+    Input(dt.col_names[1], 'value'),
     Input('stads_id', 'data'),
+    Input('year-slider', 'value'),
     prevent_initial_call=True
 )
-def handle_select_event_energy_type(selected_energy_types, selected_energy_activity, current_data):
-    current_data_df = pd.DataFrame(current_data)  # Convert the data to a DataFrame
+def handle_select_event_energy_type(selected_energy_types, selected_energy_activity, current_data, time_range,):
 
-    if not selected_energy_types and not selected_energy_activity:
-        return current_data_df.to_dict('records')  # No categories selected, return the current data as is
+    current_data_df = pd.DataFrame(dt.stads_df)  # Convert the data to a DataFrame
+    if not selected_energy_types and not selected_energy_activity and not time_range:
+        return current_data_df.to_dict('records')  # No filters selected, return the current data as is
 
     filtered_data = current_data_df.copy()  # Make a copy of the current data
 
     if selected_energy_types:
-        filtered_data = filterData(selected_energy_types, filtered_data, data.col_names[0])
+        filtered_data = filterData(selected_energy_types, filtered_data, dt.col_names[0])
 
     if selected_energy_activity:
-        filtered_data = filterData(selected_energy_activity, filtered_data, data.col_names[1])
+        filtered_data = filterData(selected_energy_activity, filtered_data, dt.col_names[1])
+
+    filtered_data_copy = filtered_data.copy()  # Make a copy of the current data
+
+    # Handle when the checkbox is selected, and the range is empty, but a single year is selected
+    if len(time_range) == 1:
+        single_year = time_range[0]
+        single_year = int(single_year)
+        filtered_data = filtered_data[filtered_data['Year'] == single_year]
+        if not filtered_data.empty:
+            return filtered_data.to_dict('records')
+        else:
+            return ["No data selected"]
+
+    if time_range and len(time_range) == 2:
+        min_year, max_year = time_range
+        min_year = int(min_year)
+        max_year = int(max_year)
+
+        filtered_data_copy = filtered_data_copy[
+            (filtered_data_copy['Year'] >= min_year) & (filtered_data_copy['Year'] <= max_year)
+            ]
+        filtered_data = filtered_data_copy
 
     return filtered_data.to_dict('records')
+
 
 def CreateCategoryFilteringTree(categories, id, placeHolder):
     return fac.AntdTreeSelect(
@@ -67,34 +88,27 @@ def CreateCategoryFilteringTree(categories, id, placeHolder):
     )
 
 
-
 # define the navbar and footer
 nav = navbar.Navbar()
 footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
 data_table = dash_table.DataTable(
     id='stads_id',
-    data=data.stads_df.to_dict('records'),
+    data=dt.stads_df.to_dict('records'),
     page_size=10,  # Number of rows per page
     page_current=0,  # Current page
 )
 
-#define the energy_types filter
+# define the energy_types filter
 
-energy_types_filter = CreateCategoryFilteringTree(data.energy_categories_types, data.col_names[0], "Select Energy Type")
+energy_types_filter = CreateCategoryFilteringTree(dt.energy_categories_types, dt.col_names[0], "Select Energy Type")
 energy_types_filter.className = "category-tree"
-energy_activity_filter = CreateCategoryFilteringTree(data.energy_activities, data.col_names[1],"Select Energy Activity")
+energy_activity_filter = CreateCategoryFilteringTree(dt.energy_activities, dt.col_names[1], "Select Energy Activity")
 energy_activity_filter.className = "category-tree"
 
 
-# Combine both callbacks to update checkbox options and uncheck the checkbox
-@app.callback(
-    Output('confirm-checkbox', 'options'),
-    Output('confirm-checkbox', 'value'),
-    Input('year-slider', 'value')
-)
-def update_checkbox_options_and_uncheck(value):
-    return ([{'label': 'Confirm Selection', 'value': 'confirm'}], []) if value else ([], [])
+
+
 
 @app.callback(
     Output('year-slider', 'disabled'),
@@ -108,6 +122,7 @@ def update_slider_state(on):
         return False, [1960], label  # Return label as a part of the tuple
     else:
         return False, [1960, 2021], label  # Return label as a part of the tuple
+
 
 def setLabel(on):
     if on:

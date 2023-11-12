@@ -24,27 +24,11 @@ def TimeSlider(start_year=1960, end_year=2021):
         style={'display': 'inline-block', 'vertical-align': 'middle', 'margin-left': '10px', 'transform': 'scale(0.8)'}
     )
 
-    checkbox = dcc.Checklist(
-        id='confirm-checkbox',
-        options=[{'label': 'Confirm Selection', 'value': 'confirm'}],
-        style={'display': 'inline-block', 'border-radius': '20px', 'vertical-align': 'middle', 'margin-left': '10px', 'transform': 'scale(0.8)'}
-    )
 
-    # Create a container for the switch and checkbox with circular edges
-    switch_and_checkbox_container = html.Div(
-        children=[toggle_switch, html.Br(), checkbox],
-        style={
-            'display': 'inline-block',
-            'border': '1px solid #ccc',
-            'border-radius': '20px',
-            'padding': '5px',
-            'margin-bottom': '20px',  # Add margin to create space between the container and the slider
-        }
-    )
 
     # Create a container for the switch, slider, and the switch_and_checkbox container
     slider_container = html.Div(
-        children=[switch_and_checkbox_container, slider],
+        children=[toggle_switch, html.Br(), slider],
         style={'width': '80%'}
     )
 
