@@ -10,4 +10,5 @@ def CreateCategoryFilteringTree(categories, id, placeHolder):
         treeLine=True,
         treeDefaultExpandAll=True,
         placeholder=placeHolder,
+        style={'width': 'auto'}  # Set the width to 'auto'
     )

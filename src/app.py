@@ -3,7 +3,7 @@ from dash import Dash, html, dash_table
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 import dash
-from components import navbar, footer, timeSlider
+from components import navbar, footer, timeSlider, map
 import feffery_antd_components as fac
 import pandas as pd
 from dash import Input, Output, State, ALL
@@ -35,15 +35,21 @@ app = dash.Dash(
     Input(dt.col_names[1], 'value'),
     Input('stads_id', 'data'),
     Input('year-slider', 'value'),
+    Input('choropleth-map', 'clickData'),  # Add this input
     prevent_initial_call=True
 )
-def handle_select_event_energy_type(selected_energy_types, selected_energy_activity, current_data, time_range,):
-
+def handle_select_event_energy_type(selected_energy_types, selected_energy_activity, current_data, time_range, click_data):
     current_data_df = pd.DataFrame(dt.stads_df)  # Convert the data to a DataFrame
-    if not selected_energy_types and not selected_energy_activity and not time_range:
+    if not selected_energy_types and not selected_energy_activity and not time_range and not click_data:
         return current_data_df.to_dict('records')  # No filters selected, return the current data as is
 
     filtered_data = current_data_df.copy()  # Make a copy of the current data
+
+    if click_data:
+        print("Map was clicked")
+        state_code = click_data['points'][0]['location']
+        print(f"Clicked state {state_code}")
+        filtered_data = filterData([state_code], filtered_data, 'StateCode')
 
     if selected_energy_types:
         filtered_data = filterData(selected_energy_types, filtered_data, dt.col_names[0])
@@ -98,6 +104,7 @@ data_table = dash_table.DataTable(
     page_size=10,  # Number of rows per page
     page_current=0,  # Current page
 )
+USmap = map.USmap(dt.stads_df)
 
 # define the energy_types filter
 
@@ -105,9 +112,6 @@ energy_types_filter = CreateCategoryFilteringTree(dt.energy_categories_types, dt
 energy_types_filter.className = "category-tree"
 energy_activity_filter = CreateCategoryFilteringTree(dt.energy_activities, dt.col_names[1], "Select Energy Activity")
 energy_activity_filter.className = "category-tree"
-
-
-
 
 
 @app.callback(
@@ -130,26 +134,41 @@ def setLabel(on):
     else:
         return 'Select Time Interval'
 
-
-def update_slider_state(on):
-    label = setLabel(on)  # Calculate the label based on the toggle state
-    if on:
-        return False, [1960], label
+@app.callback(
+    Output('output-state-click', 'children'),
+    Input('choropleth-map', 'clickData')
+)
+def display_clicked_state(clickData):
+    if clickData is not None:
+        state_code = clickData['points'][0]['hovertext']
+        print(f"Clicked state code: {state_code}")
+        return f"Clicked state code: {state_code}"
     else:
-        return False, [1960, 2021], label
+        return ""
 
-
-# set the main layout
 app.layout = html.Div(
     [
         nav,
-        html.Div([energy_types_filter, html.Div(style={'width': '20px'}), energy_activity_filter],
-                 style={'display': 'flex'}),
-        data_table,
+        html.Div(
+            [
+                # Energy filters container with flex layout
+                html.Div(
+                    [energy_types_filter, energy_activity_filter],
+                    style={'display': 'flex', 'flex': '1'}
+                ),
+                # Map taking the remaining space
+                html.Div(USmap, style={'flex': '2'}),
+
+            ],
+            style={'display': 'flex', 'flex-direction': 'column'},
+        ),
         timeSlider,
+        data_table,
         footer,
-    ]
+    ],
+    style={'display': 'flex', 'flex-direction': 'column'},
 )
+
 
 # Run the app
 if __name__ == "__main__":
