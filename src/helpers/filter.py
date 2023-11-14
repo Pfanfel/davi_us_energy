@@ -23,6 +23,25 @@ def filterData(chosen_categories, data, category_to_filter):
     return data[filter_condition]
 
 
+def filterByValue(value_to_filter, df):
+    data = df.copy()
+    filtered = df[df.eq(value_to_filter).any(axis=1)]
+    if filtered is []:
+        return data
+    else:
+        return filtered
+
+
+def filterByValues(values_to_filter, df):
+    data = df.copy()
+    mask = df.isin(values_to_filter).any(axis=1)
+    filtered = df[mask]
+
+    if filtered.empty:
+        return data
+    else:
+        return filtered
+
 
 def getUniqueValuesOf(columnName, dataframe):
     energy_types = dataframe[columnName].unique()
