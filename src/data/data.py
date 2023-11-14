@@ -15,6 +15,161 @@ gdp_by_year_df = pd.read_csv("data/gdp_year.csv")
 
 col_names = ['energy_type', 'energy_activity']
 
+production = [{
+    'title': "total energy production",
+    'key': "production",
+    'value': "production",
+    'children':
+            [{
+                'title': "coal",
+                'key': "coal",
+                'value': "coal"
+            },
+            {
+                'title': "natural gas, including supplemental gaseous fuels",
+                'key': "natural gas, including supplemental gaseous fuels",
+                'value': "natural gas, including supplemental gaseous fuels"
+            },
+            {
+                'title': "natural gas, excluding supplemental gaseous fuels",
+                'key': "natural gas, excluding supplemental gaseous fuels",
+                'value': "natural gas, excluding supplemental gaseous fuels"
+            },
+            {
+                'title': "nuclear electric power",
+                'key': "nuclear electric power",
+                'value': "nuclear electric power"
+            },
+            {
+                'title': "renewable energy",
+                'key': "renewable energy",
+                'value': "renewable energy",
+                'children': [{
+                    {
+                        'title': "biofuels",
+                        'key': "biofuels",
+                        'value': "biofuels"
+                    },
+                    {
+                        'title': "wood and waste",
+                        'key': "wood and waste",
+                        'value': "wood and waste"
+                    },
+                    {
+                        'title': "other",
+                        'key': "renewable_energy_other",
+                        'value': "renewable_energy_other"
+                    },
+
+                }],
+            }]
+}]
+
+consumption = [{
+    'title': "total energy consumption",
+    'key': "total_energy_consumption",
+    'value': "total_energy_consumption",
+    'children': [
+        {
+            'title': "fossil fuels",
+            'key': "fossil fuels",
+            'value': "fossil fuels",
+            'children': [
+                {
+                    'title': "coal",
+                    'key': "coal",
+                    'value': "coal"
+                },
+                {
+                    'title': "natural gas, including supplemental gaseous fuels",
+                    'key': "natural gas, including supplemental gaseous fuels",
+                    'value': "natural gas, including supplemental gaseous fuels"
+                },
+                {
+                    'title': "natural gas, excluding supplemental gaseous fuels",
+                    'key': "natural gas, excluding supplemental gaseous fuels",
+                    'value': "natural gas, excluding supplemental gaseous fuels"
+                }
+            ]
+        },
+        {
+            'title': "nuclear electric power",
+            'key': "nuclear electric power",
+            'value': "nuclear electric power"
+        },
+        {
+            'title': "renewable energy",
+            'key': "renewable energy",
+            'value': "renewable energy",
+            'children': [
+                {
+                    'title': "hydroelectric power",
+                    'key': "hydroelectric power",
+                    'value': "hydroelectric power"
+                },
+                {
+                    'title': "biomass",
+                    'key': "biomass",
+                    'value': "biomass",
+                    'children': [
+                        {
+                            'title': "wood and waste",
+                            'key': "wood and waste",
+                            'value': "wood and waste"
+                        },
+                        {
+                            'title': "fuel ethanol, excluding denaturant",
+                            'key': "fuel ethanol, excluding denaturant",
+                            'value': "fuel ethanol, excluding denaturant"
+                        },
+                        {
+                            'title': "biodiesel",
+                            'key': "biodiesel",
+                            'value': "biodiesel"
+                        },
+                        {
+                            'title': "renewable diesel",
+                            'key': "renewable diesel",
+                            'value': "renewable diesel"
+                        },
+                        {
+                            'title': "energy losses and co-products (biofuels only)",
+                            'key': "energy losses and co-products (biofuels only)",
+                            'value': "energy losses and co-products (biofuels only)"
+                        },
+                    ]
+                },
+                {
+                    'title': "geothermal energy",
+                    'key': "geothermal energy",
+                    'value': "geothermal energy"
+                },
+                {
+                    'title': "photovoltaic and solar thermal energy",
+                    'key': "photovoltaic and solar thermal energy",
+                    'value': "photovoltaic and solar thermal energy"
+                },
+                {
+                    'title': "wind",
+                    'key': "wind",
+                    'value': "wind"
+                }
+            ]
+        },
+        {
+            'title': "interstate flow (electricity only)",
+            'key': "interstate flow (electricity only)",
+            'value': "interstate flow (electricity only)"
+        },
+        {
+            'title': "net imports",
+            'key': "net imports",
+            'value': "net imports"
+        }
+    ]
+}]
+
+
 
 energy_activities = [
     {
@@ -98,6 +253,10 @@ energy_activities = [
         ]
     }
 ]
+
+
+
+
 
 energy_categories_types = [
     {
