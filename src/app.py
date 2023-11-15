@@ -3,7 +3,7 @@ from dash import Dash, html, dash_table
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 import dash
-from components import navbar, footer, timeSlider, map
+from components import navbar, footer, timeSlider, map, stackAreaChart
 import feffery_antd_components as fac
 import pandas as pd
 from dash import Input, Output, State, ALL
@@ -28,59 +28,6 @@ app = dash.Dash(
     suppress_callback_exceptions=True,
     title="🇺🇸 Awesome Data Visualization for US Energy Production and Consumption by State",
 )
-
-
-# @app.callback(
-#     Output('stads_id', 'data'),
-#     Input(dt.col_names[0], 'value'),
-#     Input(dt.col_names[1], 'value'),
-#     Input('stads_id', 'data'),
-#     Input('year-slider', 'value'),
-#     Input('choropleth-map', 'clickData'),  # Add this input
-#     prevent_initial_call=True
-# )
-# def handle_select_event_energy_type(selected_energy_types, selected_energy_activity, current_data, time_range, click_data):
-#     current_data_df = pd.DataFrame(dt.stads_df)  # Convert the data to a DataFrame
-#     if not selected_energy_types and not selected_energy_activity and not time_range and not click_data:
-#         return current_data_df.to_dict('records')  # No filters selected, return the current data as is
-#
-#     filtered_data = current_data_df.copy()  # Make a copy of the current data
-#
-#     if click_data:
-#         print("Map was clicked")
-#         state_code = click_data['points'][0]['location']
-#         print(f"Clicked state {state_code}")
-#         filtered_data = filterData([state_code], filtered_data, 'StateCode')
-#
-#     if selected_energy_types:
-#         filtered_data = filterData(selected_energy_types, filtered_data, dt.col_names[0])
-#
-#     if selected_energy_activity:
-#         filtered_data = filterData(selected_energy_activity, filtered_data, dt.col_names[1])
-#
-#     filtered_data_copy = filtered_data.copy()  # Make a copy of the current data
-#
-#     # Handle when the checkbox is selected, and the range is empty, but a single year is selected
-#     if len(time_range) == 1:
-#         single_year = time_range[0]
-#         single_year = int(single_year)
-#         filtered_data = filtered_data[filtered_data['Year'] == single_year]
-#         if not filtered_data.empty:
-#             return filtered_data.to_dict('records')
-#         else:
-#             return ["No data selected"]
-#
-#     if time_range and len(time_range) == 2:
-#         min_year, max_year = time_range
-#         min_year = int(min_year)
-#         max_year = int(max_year)
-#
-#         filtered_data_copy = filtered_data_copy[
-#             (filtered_data_copy['Year'] >= min_year) & (filtered_data_copy['Year'] <= max_year)
-#             ]
-#         filtered_data = filtered_data_copy
-#
-#     return filtered_data.to_dict('records')
 
 @app.callback(
     Output('stads_id_consumption', 'data'),
@@ -202,6 +149,7 @@ def CreateCategoryFilteringTree(categories, id, placeHolder):
 nav = navbar.Navbar()
 footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
+stackAreaChart = stackAreaChart.StackAreaChart()
 
 data_table_production = dash_table.DataTable(
     id='stads_id_production',
@@ -219,12 +167,38 @@ data_table_consumption= dash_table.DataTable(
 
 USmap = map.USmap(dt.stads_df)
 USmapHEX = map.USHexMap(dt.stads_df)
-
+stackChart = stackAreaChart.StackAreaChart()
 
 
 consumption_filters = CreateCategoryFilteringTree(dt.consumption, "consumption-filter", "Energy Consumption")
 production_filters = CreateCategoryFilteringTree(dt.consumption, "production-filter", "Energy Production")
 
+# Funzione di callback per aggiornare il grafico in base alle selezioni
+@app.callback(
+    Output("energy-chart", "figure"),
+    Input('stads_id_production', 'data'),
+)
+def update_energy_chart(filtered_df):
+    # Crea un grafico a area sovrapposto per le variabili selezionate
+    fig = go.Figure()
+
+    for msn in filtered_df['MSN'].unique():
+        msn_data = filtered_df[filtered_df['MSN'] == msn]
+        fig.add_trace(go.Scatter(
+            x=msn_data['Year'],
+            y=msn_data['Data'],
+            fill='tonexty',
+            mode='none',
+            name=msn
+        ))
+
+    fig.update_layout(
+        xaxis_title='Year',
+        yaxis_title='Data',
+        title=f'Energy Data Over Time in {selected_state}'
+    )
+
+    return fig
 
 
 @app.callback(
@@ -276,6 +250,7 @@ app.layout = html.Div(
         timeSlider,
         data_table_production,
         data_table_consumption,
+        stackAreaChart,
         footer,
     ],
     style={'display': 'flex', 'flex-direction': 'column'},
