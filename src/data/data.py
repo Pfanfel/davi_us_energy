@@ -62,92 +62,92 @@ consumption = [
     {
         "title": "total energy consumption",
         "key": "total_energy_consumption",
-        "value": "total_energy_consumption",
+        "value": 0,
         "children": [
             {
                 "title": "fossil fuels",
                 "key": "fossil fuels",
-                "value": "fossil fuels",
+                "value": 1,
                 "children": [
-                    {"title": "coal", "key": "coal", "value": "coal"},
+                    {"title": "coal", "key": "coal", "value": 2},
                     {
                         "title": "natural gas, including supplemental gaseous fuels",
                         "key": "natural gas, including supplemental gaseous fuels",
-                        "value": "natural gas, including supplemental gaseous fuels",
+                        "value": 2,
                     },
                     {
                         "title": "natural gas, excluding supplemental gaseous fuels",
                         "key": "natural gas, excluding supplemental gaseous fuels",
-                        "value": "natural gas, excluding supplemental gaseous fuels",
+                        "value": 2,
                     },
                 ],
             },
             {
                 "title": "nuclear electric power",
                 "key": "nuclear electric power",
-                "value": "nuclear electric power",
+                "value": 1,
             },
             {
                 "title": "renewable energy",
                 "key": "renewable energy",
-                "value": "renewable energy",
+                "value": 1,
                 "children": [
                     {
                         "title": "hydroelectric power",
                         "key": "hydroelectric power",
-                        "value": "hydroelectric power",
+                        "value": 2,
                     },
                     {
                         "title": "biomass",
                         "key": "biomass",
-                        "value": "biomass",
+                        "value": 2,
                         "children": [
                             {
                                 "title": "wood and waste",
                                 "key": "wood and waste",
-                                "value": "wood and waste",
+                                "value": 3,
                             },
                             {
                                 "title": "fuel ethanol, excluding denaturant",
                                 "key": "fuel ethanol, excluding denaturant",
-                                "value": "fuel ethanol, excluding denaturant",
+                                "value": 3,
                             },
                             {
                                 "title": "biodiesel",
                                 "key": "biodiesel",
-                                "value": "biodiesel",
+                                "value": 3,
                             },
                             {
                                 "title": "renewable diesel",
                                 "key": "renewable diesel",
-                                "value": "renewable diesel",
+                                "value": 3,
                             },
                             {
                                 "title": "energy losses and co-products (biofuels only)",
                                 "key": "energy losses and co-products (biofuels only)",
-                                "value": "energy losses and co-products (biofuels only)",
+                                "value": 3,
                             },
                         ],
                     },
                     {
                         "title": "geothermal energy",
                         "key": "geothermal energy",
-                        "value": "geothermal energy",
+                        "value": 2,
                     },
                     {
                         "title": "photovoltaic and solar thermal energy",
                         "key": "photovoltaic and solar thermal energy",
-                        "value": "photovoltaic and solar thermal energy",
+                        "value": 2,
                     },
-                    {"title": "wind", "key": "wind", "value": "wind"},
+                    {"title": "wind", "key": "wind", "value": 2},
                 ],
             },
             {
                 "title": "interstate flow (electricity only)",
                 "key": "interstate flow (electricity only)",
-                "value": "interstate flow (electricity only)",
+                "value": 1,
             },
-            {"title": "net imports", "key": "net imports", "value": "net imports"},
+            {"title": "net imports", "key": "net imports", "value": 1},
         ],
     }
 ]
@@ -157,22 +157,22 @@ energy_activities = [
     {
         "title": "energy activities",
         "key": "energy_activity",
-        "value": "energy_activity",
+        "value": 0,
         "children": [
             {
                 "title": "energy generation",
                 "key": "energy generation",
-                "value": "energy generation",
+                "value": 1,
                 "children": [
                     {
                         "title": "production",
                         "key": "production",
-                        "value": "production",
+                        "value": 2,
                         "children": [
                             {
                                 "title": "marketed production",
                                 "key": "marketed production",
-                                "value": "marketed production",
+                                "value": 2,
                             }
                         ],
                     }
@@ -181,52 +181,52 @@ energy_activities = [
             {
                 "title": "energy consumption",
                 "key": "energy consumption",
-                "value": "energy consumption",
+                "value": 1,
                 "children": [
                     {
                         "title": "total consumption of all energy-consuming sectors",
                         "key": "total consumption of all energy-consuming sectors",
-                        "value": "total consumption of all energy-consuming sectors",
+                        "value": 2,
                         "children": [
                             {
                                 "title": "residential sector consumption",
                                 "key": "residential sector consumption",
-                                "value": "residential sector consumption",
+                                "value": 3,
                             },
                             {
                                 "title": "commercial sector consumption",
                                 "key": "commercial sector consumption",
-                                "value": "commercial sector consumption",
+                                "value": 3,
                             },
                             {
                                 "title": "industrial sector consumption",
                                 "key": "industrial sector consumption",
-                                "value": "industrial sector consumption",
+                                "value": 3,
                             },
                             {
                                 "title": "transportation sector consumption",
                                 "key": "transportation sector consumption",
-                                "value": "transportation sector consumption",
+                                "value": 3,
                             },
                         ],
                     },
                     {
                         "title": "total consumption for electricity generation (nuclear only)",
                         "key": "total consumption for electricity generation (nuclear only)",
-                        "value": "total consumption for electricity generation (nuclear only)",
+                        "value": 2,
                     },
                 ],
             },
             {
                 "title": "interstate flow (electricity only)",
                 "key": "interstate flow (electricity only)",
-                "value": "interstate flow (electricity only)",
+                "value": 1,
             },
             {"title": "net imports", "key": "net imports", "value": "net imports"},
             {
                 "title": "energy losses and co-products (biofuels only)",
                 "key": "energy losses and co-products (biofuels only)",
-                "value": "energy losses and co-products (biofuels only)",
+                "value": 1,
             },
         ],
     }

@@ -7,7 +7,12 @@ from components import navbar, footer, timeSlider, map, stackAreaChart
 import feffery_antd_components as fac
 import pandas as pd
 from dash import Input, Output, State, ALL
-from helpers.filter import filterData, filterByValues, filterByValue
+from helpers.filter import (
+    filterData,
+    filterByValues,
+    filterByValue,
+    getAllCategoriesValuesAtTheSameLevel,
+)
 from data import data as dt
 import plotly.graph_objects as go
 
@@ -50,9 +55,7 @@ def handle_select_event_consumption(selected_consumption, time_range, click_data
     filtered_data = current_data_df.copy()  # Make a copy of the current data
 
     if click_data:
-        print("Map was clicked")
         state_code = click_data["points"][0]["location"]
-        print(f"Clicked state {state_code}")
         filtered_data = filterData([state_code], filtered_data, "StateCode")
 
     if selected_consumption:
@@ -182,33 +185,71 @@ production_filters = CreateCategoryFilteringTree(
 )
 
 
-# Funzione di callback per aggiornare il grafico in base alle selezioni
 @app.callback(
     Output("energy-chart", "figure"),
-    Input("stads_id_production", "data"),
+    Input("production-filter", "value"),
+    Input("consumption-filter", "value"),
+    Input("year-slider", "value"),
+    Input("choropleth-map", "clickData"),
 )
-def update_energy_chart(filtered_df):
-    filtered_df = pd.DataFrame(filtered_df)
-    # Crea un grafico a area sovrapposto per le variabili selezionate
-    fig = go.Figure()
+def update_energy_chart(
+    selected_production_categories,
+    selected_consumption_categories,
+    time_range,
+    click_data,
+):
+    state_code = "US"
+    data_to_show = pd.DataFrame(dt.stads_df).copy()
+    selected_categories = []
 
-    for msn in filtered_df["MSN"].unique():
-        msn_data = filtered_df[filtered_df["MSN"] == msn]
+    # should we take the children or on the same level?
+    if selected_production_categories:
+        selected_categories = getAllCategoriesValuesAtTheSameLevel(
+            selected_production_categories[0], dt.production
+        )
+        data_to_show = filterByValues(selected_categories, data_to_show)
+
+    elif selected_consumption_categories:
+        selected_categories = getAllCategoriesValuesAtTheSameLevel(
+            selected_consumption_categories[0], dt.consumption
+        )
+        data_to_show = filterByValues(selected_categories, data_to_show)
+
+    if click_data:
+        state_code = click_data["points"][0]["location"]
+        data_to_show = filterData([state_code], data_to_show, "StateCode")
+
+    for energy_type in data_to_show["energy_type"].unique():
+        energy_type_data = data_to_show[data_to_show["energy_type"] == energy_type]
         fig.add_trace(
             go.Scatter(
-                x=msn_data["Year"],
-                y=msn_data["Data"],
+                x=energy_type_data["Year"],
+                y=energy_type_data["Data"],
                 fill="tonexty",
                 mode="none",
-                name=msn,
+                name=energy_type,
             )
         )
 
+    fig = go.Figure()
     fig.update_layout(
         xaxis_title="Year",
         yaxis_title="Data",
-        title=f"Energy Data Over Time in {selected_state}",
+        title=f"Energy Data Over Time in {state_code}",
     )
+
+    if not time_range:
+        return fig
+
+    # if a single year is selected, then we have a vertical line on the stacked area chart
+    # that highlight that year
+    if len(time_range) == 1:
+        fig.update_layout()
+    # if two years are selected, then we have two vertical lines that create and the area
+    # in the middle is highlighted
+
+    if time_range and len(time_range) == 2:
+        return fig.update_layout()
 
     return fig
 
