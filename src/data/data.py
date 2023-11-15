@@ -44,7 +44,7 @@ production = [{
                 'title': "renewable energy",
                 'key': "renewable energy",
                 'value': "renewable energy",
-                'children': [{
+                'children': [
                     {
                         'title': "biofuels",
                         'key': "biofuels",
@@ -59,7 +59,6 @@ production = [{
                         'title': "other",
                         'key': "renewable_energy_other",
                         'value': "renewable_energy_other"
-                    },
 
                 }],
             }]

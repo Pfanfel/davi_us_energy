@@ -205,14 +205,14 @@ timeSlider = timeSlider.TimeSlider()
 
 data_table_production = dash_table.DataTable(
     id='stads_id_production',
-    data=filterByValue('production', dt.stads_df.copy()).to_dict('records'),
+    data=dt.stads_df.copy().to_dict('records'),
     page_size=10,  # Number of rows per page
     page_current=0,  # Current page
 )
 
 data_table_consumption= dash_table.DataTable(
     id='stads_id_consumption',
-    data=filterByValue('total_energy_consumption', dt.stads_df.copy()).to_dict('records'),
+    data=dt.stads_df.copy().to_dict('records'),
     page_size=10,  # Number of rows per page
     page_current=0,  # Current page
 )
@@ -221,15 +221,9 @@ USmap = map.USmap(dt.stads_df)
 USmapHEX = map.USHexMap(dt.stads_df)
 
 
-# define the energy_types filter
 
-energy_types_filter = CreateCategoryFilteringTree(dt.energy_categories_types, dt.col_names[0], "Select Energy Type")
-energy_types_filter.className = "category-tree"
-energy_activity_filter = CreateCategoryFilteringTree(dt.energy_activities, dt.col_names[1], "Select Energy Activity")
-energy_activity_filter.className = "category-tree"
-
-consumption_filters = CreateCategoryFilteringTree(dt.consumption,"consumption-filter", "Energy Consumption")
-production_filters = CreateCategoryFilteringTree(dt.consumption,"production-filter", "Energy Production")
+consumption_filters = CreateCategoryFilteringTree(dt.consumption, "consumption-filter", "Energy Consumption")
+production_filters = CreateCategoryFilteringTree(dt.consumption, "production-filter", "Energy Production")
 
 
 
@@ -274,16 +268,11 @@ app.layout = html.Div(
                 html.Div(
                     [consumption_filters, production_filters],
                     style={'display': 'flex', 'flex': '1'}
-                ),
-                html.Div(
-                    [USmap, USmapHEX],
-                    style={'display': 'flex', 'flex': '1'}
-                ),
-
-
+                )
             ],
             style={'display': 'flex', 'flex-direction': 'column'},
         ),
+        USmap,
         timeSlider,
         data_table_production,
         data_table_consumption,
