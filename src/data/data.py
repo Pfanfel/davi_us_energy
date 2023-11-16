@@ -5,58 +5,56 @@ This file is used to load data from the data folder and perform any data manipul
 # Import Pandas
 import pandas as pd
 
-stads_df = pd.read_csv(
-    "/home/michi/repos/davi_us_energy/src/data/stads_data_parsed_cleaned_pop_gdp_v1.csv"
-)
+stads_df = pd.read_csv("C:\\Users\\MichalinaJanik\\USA_merged\\src\\data\\stads_data_parsed_cleaned_pop_gdp_v1.csv")
 
 
 # Hardcoded list of values for a ui element
 
 col_names = ["energy_type", "energy_activity"]
-
 production = [
     {
         "title": "total energy production",
         "key": "production",
-        "value": "production",
+        "value": 0,
         "children": [
-            {"title": "coal", "key": "coal", "value": "coal"},
+            {"title": "coal", "key": "coal", "value": 1},  # Update the value to the level value
             {
                 "title": "natural gas, including supplemental gaseous fuels",
                 "key": "natural gas, including supplemental gaseous fuels",
-                "value": "natural gas, including supplemental gaseous fuels",
+                "value": 1,
             },
             {
                 "title": "natural gas, excluding supplemental gaseous fuels",
                 "key": "natural gas, excluding supplemental gaseous fuels",
-                "value": "natural gas, excluding supplemental gaseous fuels",
+                "value": 1,
             },
             {
                 "title": "nuclear electric power",
                 "key": "nuclear electric power",
-                "value": "nuclear electric power",
+                "value": 1,
             },
             {
                 "title": "renewable energy",
                 "key": "renewable energy",
-                "value": "renewable energy",
+                "value": 1,
                 "children": [
-                    {"title": "biofuels", "key": "biofuels", "value": "biofuels"},
+                    {"title": "biofuels", "key": "biofuels", "value": 2},
                     {
                         "title": "wood and waste",
                         "key": "wood and waste",
-                        "value": "wood and waste",
+                        "value": 2,
                     },
                     {
                         "title": "other",
                         "key": "renewable_energy_other",
-                        "value": "renewable_energy_other",
+                        "value": 2,
                     },
                 ],
             },
         ],
     }
 ]
+
 
 consumption = [
     {

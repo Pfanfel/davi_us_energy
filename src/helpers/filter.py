@@ -12,61 +12,82 @@ def find_root_node(tree, target_title):
                 return result
     return None
 
-
-def getAllCategoriesValuesAtTheSameLevel(chosen_category_value, tree):
-    level_value = 0
+def get_category_value_and_level(category_key, tree, current_level=0):
     for node in tree:
-        if node["key"] == chosen_category_value:
-            level_value = node["value"]
-    all_neighbors = []
-    for node in tree:
-        if node["value"] == level_value:
-            all_neighbors.append(node["key"])
-    return all_neighbors
+        if node["key"] == category_key:
+            return node["value"], current_level
+        if "children" in node:
+            child_value, child_level = get_category_value_and_level(
+                category_key, node["children"], current_level + 1
+            )
+            if child_value is not None:
+                return child_value, child_level
+    return None, None
 
 
-def getAllChildrenFromCategoryValue(chosen_category_value, tree):
-    level_value = 0
+def get_all_categories_at_same_level(category, tree):
+    categories = []
+    target_level = -1
+
+    def traverse_and_collect(node, current_level):
+        nonlocal target_level
+
+        if node["key"] == category:
+            target_level = node["value"]
+
+        if node["value"] == target_level:
+            categories.append(node["key"])
+
+        if "children" in node:
+            for child in node["children"]:
+                traverse_and_collect(child, current_level + 1)
+
     for node in tree:
-        if node["key"] == chosen_category_value:
-            return node["children"]
+        traverse_and_collect(node, 0)
+
+    return target_level, categories
+
+
+def get_all_children_of_category(category, tree):
+    children = []
+
+    def traverse_and_collect_children(node):
+        nonlocal category, children
+
+        if node["key"] == category:
+            if "children" in node:
+                children.extend(child["key"] for child in node["children"])
+
+        if "children" in node:
+            for child in node["children"]:
+                traverse_and_collect_children(child)
+
+    for node in tree:
+        traverse_and_collect_children(node)
+
+    return children
 
 
 def filterData(chosen_categories, data, category_to_filter):
-    filter_condition = None
-    for cat in chosen_categories:
-        condition = data[category_to_filter] == cat
-        if filter_condition is None:
-            filter_condition = condition
-        else:
-            filter_condition |= condition
-    return data[filter_condition]
+    filter_condition = data[category_to_filter].isin(chosen_categories)
+    filtered_data = data[filter_condition]
+    return filtered_data if not filtered_data.empty else data
 
 
 def filterByValue(value_to_filter, df):
-    data = df.copy()
     filtered = df[df.eq(value_to_filter).any(axis=1)]
-    if filtered is []:
-        return data
-    else:
-        return filtered
+    return filtered if not filtered.empty else df
+
 
 
 def filterByValues(values_to_filter, df):
-    data = df.copy()
     mask = df.isin(values_to_filter).any(axis=1)
     filtered = df[mask]
-
-    if filtered.empty:
-        return data
-    else:
-        return filtered
+    return filtered if not filtered.empty else df
 
 
 def getUniqueValuesOf(columnName, dataframe):
-    energy_types = dataframe[columnName].unique()
-    unique_values_list = energy_types.tolist()
-    return unique_values_list
+    return dataframe[columnName].unique()
 
 
 def getProperColumnValue(selectedCategory):
@@ -74,9 +95,39 @@ def getProperColumnValue(selectedCategory):
 
 
 def find_closest_string(target, string_list):
-    closest_string = min(string_list, key=lambda x: Levenshtein.distance(target, x))
-    return closest_string
+    return min(string_list, key=lambda x: Levenshtein.distance(target, x))
 
 
-def getClosestColumnVaueTo(selectedCategory, possibleColumnValues):
-    return find_closest_string(selectedCategory, possibleColumnValues)
+
+def getClosestColumnValueTo(selectedCategory, possibleColumnValues):
+    return min(possibleColumnValues, key=lambda x: Levenshtein.distance(selectedCategory, x))
+
+
+def find_column_name(df, target_value):
+    for column in df.columns:
+        if target_value in df[column].values:
+            return column
+    return None
+
+
+def filter_dataframe_by_tree(df, tree, parent_condition=None, level=0):
+    if not tree:
+        return df
+
+    current_level_nodes = [node for node in tree if node["value"] == level]
+    condition = parent_condition
+
+    for node in current_level_nodes:
+        key = node["key"]
+        column_name = find_column_name(df, key)
+
+        if column_name is not None:
+            if condition is None:
+                condition = (df[column_name] == key)
+            else:
+                condition &= (df[column_name] == key)
+
+            if "children" in node:
+                condition &= filter_dataframe_by_tree(df, node["children"], condition, level + 1)
+
+    return df[condition]

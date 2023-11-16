@@ -6,12 +6,12 @@ import dash
 from components import navbar, footer, timeSlider, map, stackAreaChart
 import feffery_antd_components as fac
 import pandas as pd
-from dash import Input, Output, State, ALL
+from dash import Input, Output
 from helpers.filter import (
     filterData,
     filterByValues,
-    filterByValue,
-    getAllCategoriesValuesAtTheSameLevel,
+    get_all_categories_at_same_level,
+    get_all_children_of_category, filter_dataframe_by_tree
 )
 from data import data as dt
 import plotly.graph_objects as go
@@ -36,40 +36,41 @@ app = dash.Dash(
 )
 
 
+
+
 @app.callback(
-    Output("stads_id_consumption", "data"),
-    Input("stads_id_consumption", "data"),
+    Output("stads_id", "data"),
+    Input("production-filter", "value"),
     Input("consumption-filter", "value"),
     Input("year-slider", "value"),
-    Input("choropleth-map", "clickData"),  # Add this input
+    Input("choropleth-map", "clickData"),
     prevent_initial_call=True,
 )
-def handle_select_event_consumption(selected_consumption, time_range, click_data):
-    current_data_df = pd.DataFrame(dt.stads_df)  # Convert the data to a DataFrame
 
-    if not selected_consumption and not time_range and not click_data:
+def handle_select_event(selected_production, selected_consumption, time_range, click_data):
+    current_data_df = pd.DataFrame(dt.stads_df.copy())  # Convert the data to a DataFrame
+
+    if not selected_production and not selected_consumption and not time_range and not click_data:
         return current_data_df.to_dict(
             "records"
         )  # No filters selected, return the current data as is
 
-    filtered_data = current_data_df.copy()  # Make a copy of the current data
 
-    if click_data:
-        state_code = click_data["points"][0]["location"]
-        filtered_data = filterData([state_code], filtered_data, "StateCode")
+    if selected_production:
+        current_data_df = filter_dataframe_by_tree(dt.production, current_data_df)
+        current_data_df = filterByValues(selected_production, current_data_df)
 
-    if selected_consumption:
-        filtered_data = filterByValues(selected_consumption, filtered_data)
-
-    filtered_data_copy = filtered_data.copy()  # Make a copy of the current data
+    elif selected_consumption:
+        current_data_df = filter_dataframe_by_tree(dt.consumption, current_data_df)
+        current_data_df = filterByValues(selected_consumption, current_data_df)
 
     # Handle when the checkbox is selected, and the range is empty, but a single year is selected
     if len(time_range) == 1:
         single_year = time_range[0]
         single_year = int(single_year)
-        filtered_data = filtered_data[filtered_data["Year"] == single_year]
-        if not filtered_data.empty:
-            return filtered_data.to_dict("records")
+        current_data_df = current_data_df[current_data_df["Year"] == single_year]
+        if not current_data_df.empty:
+            return current_data_df.to_dict("records")
         else:
             return ["No data selected"]
 
@@ -78,66 +79,20 @@ def handle_select_event_consumption(selected_consumption, time_range, click_data
         min_year = int(min_year)
         max_year = int(max_year)
 
-        filtered_data_copy = filtered_data_copy[
-            (filtered_data_copy["Year"] >= min_year)
-            & (filtered_data_copy["Year"] <= max_year)
+        filtered_data_copy = current_data_df[
+            (current_data_df["Year"] >= min_year)
+            & (current_data_df["Year"] <= max_year)
         ]
         filtered_data = filtered_data_copy
-
-    return filtered_data.to_dict("records")
-
-
-@app.callback(
-    Output("stads_id_production", "data"),
-    Input("stads_id_production", "data"),
-    Input("production-filter", "value"),
-    Input("year-slider", "value"),
-    Input("choropleth-map", "clickData"),  # Add this input
-    prevent_initial_call=True,
-)
-def handle_select_event_production(selected_production, time_range, click_data):
-    current_data_df = pd.DataFrame(dt.stads_df)  # Convert the data to a DataFrame
-
-    if not selected_production and not time_range and not click_data:
-        return current_data_df.to_dict(
-            "records"
-        )  # No filters selected, return the current data as is
-
-    filtered_data = current_data_df.copy()  # Make a copy of the current data
 
     if click_data:
         print("Map was clicked")
         state_code = click_data["points"][0]["location"]
         print(f"Clicked state {state_code}")
-        filtered_data = filterData([state_code], filtered_data, "StateCode")
+        current_data_df = current_data_df([state_code], current_data_df, "StateCode")
 
-    if selected_production:
-        filtered_data = filterByValues(selected_production, filtered_data)
 
-    filtered_data_copy = filtered_data.copy()  # Make a copy of the current data
-
-    # Handle when the checkbox is selected, and the range is empty, but a single year is selected
-    if len(time_range) == 1:
-        single_year = time_range[0]
-        single_year = int(single_year)
-        filtered_data = filtered_data[filtered_data["Year"] == single_year]
-        if not filtered_data.empty:
-            return filtered_data.to_dict("records")
-        else:
-            return ["No data selected"]
-
-    if time_range and len(time_range) == 2:
-        min_year, max_year = time_range
-        min_year = int(min_year)
-        max_year = int(max_year)
-
-        filtered_data_copy = filtered_data_copy[
-            (filtered_data_copy["Year"] >= min_year)
-            & (filtered_data_copy["Year"] <= max_year)
-        ]
-        filtered_data = filtered_data_copy
-
-    return filtered_data.to_dict("records")
+    return current_data_df.to_dict("records")
 
 
 def CreateCategoryFilteringTree(categories, id, placeHolder):
@@ -158,19 +113,14 @@ footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
 stackChart = stackAreaChart.StackAreaChart()
 
-data_table_production = dash_table.DataTable(
-    id="stads_id_production",
+data_table = dash_table.DataTable(
+    id="stads_id",
     data=dt.stads_df.copy().to_dict("records"),
     page_size=10,  # Number of rows per page
     page_current=0,  # Current page
 )
 
-data_table_consumption = dash_table.DataTable(
-    id="stads_id_consumption",
-    data=dt.stads_df.copy().to_dict("records"),
-    page_size=10,  # Number of rows per page
-    page_current=0,  # Current page
-)
+
 
 USmap = map.USmap(dt.stads_df)
 USmapHEX = map.USHexMap(dt.stads_df)
@@ -183,6 +133,7 @@ consumption_filters = CreateCategoryFilteringTree(
 production_filters = CreateCategoryFilteringTree(
     dt.consumption, "production-filter", "Energy Production"
 )
+
 
 
 @app.callback(
@@ -199,18 +150,22 @@ def update_energy_chart(
     click_data,
 ):
     state_code = "US"
-    data_to_show = pd.DataFrame(dt.stads_df).copy()
+    data_to_show = pd.DataFrame(dt.stads_df)
     selected_categories = []
 
     # should we take the children or on the same level?
     if selected_production_categories:
-        selected_categories = getAllCategoriesValuesAtTheSameLevel(
+        data_to_show = filter_dataframe_by_tree(dt.production, data_to_show)
+        selected_categories = get_all_categories_at_same_level(
             selected_production_categories[0], dt.production
         )
+        print(selected_production_categories)
+        print(f"Get all on the same level: {selected_categories}")
         data_to_show = filterByValues(selected_categories, data_to_show)
 
     elif selected_consumption_categories:
-        selected_categories = getAllCategoriesValuesAtTheSameLevel(
+        data_to_show = filter_dataframe_by_tree(dt.consumption, data_to_show)
+        selected_categories = get_all_categories_at_same_level(
             selected_consumption_categories[0], dt.consumption
         )
         data_to_show = filterByValues(selected_categories, data_to_show)
@@ -218,6 +173,8 @@ def update_energy_chart(
     if click_data:
         state_code = click_data["points"][0]["location"]
         data_to_show = filterData([state_code], data_to_show, "StateCode")
+
+    fig = go.Figure()
 
     for energy_type in data_to_show["energy_type"].unique():
         energy_type_data = data_to_show[data_to_show["energy_type"] == energy_type]
@@ -231,7 +188,7 @@ def update_energy_chart(
             )
         )
 
-    fig = go.Figure()
+
     fig.update_layout(
         xaxis_title="Year",
         yaxis_title="Data",
@@ -302,15 +259,15 @@ app.layout = html.Div(
         ),
         USmap,
         timeSlider,
-        data_table_production,
-        data_table_consumption,
+        data_table,
         stackChart,
         footer,
     ],
     style={"display": "flex", "flex-direction": "column"},
 )
 
-
+print(get_all_categories_at_same_level("coal", dt.production))
+print(get_all_children_of_category("renewable energy", dt.production))
 # Run the app
 if __name__ == "__main__":
     app.run(debug=True)
