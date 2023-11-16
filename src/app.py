@@ -2,8 +2,9 @@
 from dash import Dash, html, dash_table
 from dash import html, dcc
 import dash_bootstrap_components as dbc
+import plotly.express as px
 import dash
-from components import navbar, footer, timeSlider, map, stackAreaChart, categories_overivew
+from components import navbar, footer, timeSlider, map, stackAreaChart, categories_overivew, sunbursChart
 import feffery_antd_components as fac
 import pandas as pd
 from dash import Input, Output, State
@@ -11,7 +12,7 @@ from helpers.filter import (
     filterData,
     filterByValues,
     get_all_categories_at_same_level,
-    get_all_children_of_category, filter_dataframe_by_tree
+    get_all_children_of_category, filter_dataframe_by_tree, getDict
 )
 from data import data as dt
 import plotly.graph_objects as go
@@ -76,9 +77,7 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
             ]
 
     if click_data:
-        print("Map was clicked")
         state_code = click_data["points"][0]["location"]
-        print(f"Clicked state {state_code}")
         current_data_df = filterData([state_code], current_data_df, "StateCode")
 
     if current_data_df.empty:
@@ -94,6 +93,7 @@ nav = navbar.Navbar()
 footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
 USmap = map.USmap(dt.df_states)
+sunChart = sunbursChart.SunburstChart()
 stackChart = stackAreaChart.StackAreaChart()
 consumption_filters = categories_overivew.CreateCategoryFilteringTree(
     dt.consumption, "consumption-filter", "Energy Consumption", ["total_energy_consumption"]
@@ -174,8 +174,7 @@ def update_energy_chart(
         selected_categories = get_all_categories_at_same_level(
             selected_production_categories[0], dt.production
         )
-        print(selected_production_categories)
-        print(f"Get all on the same level: {selected_categories}")
+
         data_to_show = filterByValues(selected_categories, data_to_show)
 
     elif selected_consumption_categories:
@@ -191,10 +190,7 @@ def update_energy_chart(
     fig = go.Figure()
 
     for energy_type in data_to_show["energy_type"].unique():
-        print(f" Energy type : {energy_type}")
         energy_type_data = data_to_show[data_to_show["energy_type"] == energy_type]
-        print(f" Our data for the plot : {energy_type_data}")
-        print(energy_type_data["Data"])
         fig.add_trace(
             go.Scatter(
                 x=list(range(1998, 2021)),
@@ -259,6 +255,7 @@ def update_energy_chart(
 
     return fig
 
+
 @app.callback(
     [Output("year-slider", "disabled"),
      Output("year-slider", "value"),
@@ -280,13 +277,70 @@ def setLabel(on):
         return "Select Time Interval"
 
 
+
+@app.callback(
+    Output("sun-chart", "figure"),
+    [Input("year-slider", "value"),
+     Input("choropleth-map", "clickData")])
+def sun_energy_chart(time_range, click_data):
+    state_code = "US"
+    current_data_df = pd.DataFrame(dt.stads_df)
+    # selected_categories = [get_all_children_of_category('total_energy_consumption', dt.consumption)]
+
+    if click_data:
+        state_code = click_data["points"][0]["location"]
+        print(f"Location was clicked {state_code}")
+        current_data_df = filterData([state_code], current_data_df, "StateCode")
+
+    # Handle when the checkbox is selected, and the range is empty, but a single year is selected
+    if len(time_range) == 1:
+        print(f"Single date selected {time_range[0]}")
+        single_year = time_range[0]
+        single_year = int(single_year)
+        current_data_df = current_data_df[current_data_df["Year"] == single_year]
+
+        fig = px.sunburst(
+            current_data_df,
+            path=["energy_type", "energy_activity"],
+            values="Data",
+            hover_data=["Data"],
+            color_continuous_scale="RdBu",
+            # color_continuous_midpoint=np.average(df["lifeExp"], weights=df[""]),
+        )
+
+    elif time_range and len(time_range) == 2:
+        min_year, max_year = int(time_range[0]), int(time_range[1])
+
+        # Filter data based on the time range
+        current_data_df = current_data_df[
+            (current_data_df["Year"] >= min_year)
+            & (current_data_df["Year"] <= max_year)
+            ]
+
+        # Calculate the sum of Data over the time range for each category
+        sum_data_df = current_data_df.groupby(["total_energy_consumption"])["Data"].sum().reset_index()
+
+        print(dt.hierarchy_dict.values())
+        # Create the sunburst plot using the calculated sum_data_df
+        fig = px.sunburst(
+            sum_data_df,
+            path=["energy_type", "energy_activity"],
+            values="Data",
+            hover_data=["MSN"],
+            color_continuous_scale="RdBu",
+            # color_continuous_midpoint=np.average(df["lifeExp"], weights=df[""]),
+        )
+
+    fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+    return fig
+
+
 @app.callback(
     Output("output-state-click", "children"),
     Input("choropleth-map", "clickData"))
 def display_clicked_state(clickData):
     if clickData is not None:
         state_code = clickData["points"][0]["hovertext"]
-        print(f"Clicked state code: {state_code}")
         return f"Clicked state code: {state_code}"
     else:
         return ""
@@ -309,13 +363,13 @@ app.layout = html.Div(
         timeSlider,
         data_table,
         stackChart,
+        sunChart,
         footer,
     ],
     style={"display": "flex", "flex-direction": "column"},
 )
 
-print(get_all_categories_at_same_level("coal", dt.production))
-print(get_all_children_of_category("renewable energy", dt.production))
+
 # Run the app
 if __name__ == "__main__":
     app.run(debug=True)

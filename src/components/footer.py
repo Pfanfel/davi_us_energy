@@ -17,7 +17,7 @@ def Footer():
                 html.Hr(),  # horizontal line
                 html.P(
                     [
-                        "Made with ❤️ by : Michael Smirnov | Silvia Conte | Meggi Ceka | Michalina Janik",  # TODO: Add links to github and linkedin
+                        "Made with ❤️ by : Michael Smirnov | Silvia Conte | Megi Ceka | Michalina Janik",  # TODO: Add links to github and linkedin
                     ],
                 ),
             ],
