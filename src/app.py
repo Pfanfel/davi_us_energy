@@ -36,8 +36,6 @@ app = dash.Dash(
 )
 
 
-
-
 @app.callback(
     Output("stads_id", "data"),
     Input("production-filter", "value"),
@@ -95,8 +93,9 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
     return current_data_df.to_dict("records")
 
 
+# TODO: Move to sepatate file?
 def CreateCategoryFilteringTree(categories, id, placeHolder):
-    return fac.AntdTreeSelect(
+    antd_tree_select = fac.AntdTreeSelect(
         id=id,
         treeData=categories,
         multiple=True,
@@ -106,6 +105,8 @@ def CreateCategoryFilteringTree(categories, id, placeHolder):
         placeholder=placeHolder,
     )
 
+    return antd_tree_select
+
 
 # define the navbar and footer
 nav = navbar.Navbar()
@@ -113,12 +114,12 @@ footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
 stackChart = stackAreaChart.StackAreaChart()
 
-data_table = dash_table.DataTable(
+data_table = html.Div(dash_table.DataTable(
     id="stads_id",
     data=dt.stads_df.copy().to_dict("records"),
     page_size=10,  # Number of rows per page
     page_current=0,  # Current page
-)
+),className="pretty_container")
 
 
 
@@ -133,7 +134,6 @@ consumption_filters = CreateCategoryFilteringTree(
 production_filters = CreateCategoryFilteringTree(
     dt.consumption, "production-filter", "Energy Production"
 )
-
 
 
 @app.callback(
@@ -188,7 +188,7 @@ def update_energy_chart(
             )
         )
 
-
+    fig = go.Figure()
     fig.update_layout(
         xaxis_title="Year",
         yaxis_title="Data",
@@ -244,19 +244,22 @@ def display_clicked_state(clickData):
         return ""
 
 
+energy_filters = html.Div(
+    [
+        # Energy filters container with flex layout
+        html.Div(
+            [consumption_filters, production_filters],
+            style={"display": "flex", "flex": "1"},
+        )
+    ],
+    style={"display": "flex", "flex-direction": "column"},
+    className="pretty_container",
+)
+
 app.layout = html.Div(
     [
         nav,
-        html.Div(
-            [
-                # Energy filters container with flex layout
-                html.Div(
-                    [consumption_filters, production_filters],
-                    style={"display": "flex", "flex": "1"},
-                )
-            ],
-            style={"display": "flex", "flex-direction": "column"},
-        ),
+        energy_filters,
         USmap,
         timeSlider,
         data_table,
