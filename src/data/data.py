@@ -5,8 +5,12 @@ This file is used to load data from the data folder and perform any data manipul
 # Import Pandas
 import pandas as pd
 
+# stads_df = pd.read_csv(
+#     "/home/michi/repos/davi_us_energy/src/data/stads_data_parsed_cleaned_pop_gdp_v1.csv"
+# )
+
 stads_df = pd.read_csv(
-    "/home/michi/repos/davi_us_energy/src/data/stads_data_parsed_cleaned_pop_gdp_v1.csv"
+    "/home/michi/repos/davi_us_energy/src/data/stads_data_parsed_cleaned_pop_gdp_v1_only_from_1998.csv"
 )
 
 

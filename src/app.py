@@ -140,8 +140,9 @@ def handle_select_event_production(selected_production, time_range, click_data):
     return filtered_data.to_dict("records")
 
 
+# TODO: Move to sepatate file?
 def CreateCategoryFilteringTree(categories, id, placeHolder):
-    return fac.AntdTreeSelect(
+    antd_tree_select = fac.AntdTreeSelect(
         id=id,
         treeData=categories,
         multiple=True,
@@ -151,6 +152,8 @@ def CreateCategoryFilteringTree(categories, id, placeHolder):
         placeholder=placeHolder,
     )
 
+    return antd_tree_select
+
 
 # define the navbar and footer
 nav = navbar.Navbar()
@@ -158,18 +161,24 @@ footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
 stackChart = stackAreaChart.StackAreaChart()
 
-data_table_production = dash_table.DataTable(
-    id="stads_id_production",
-    data=dt.stads_df.copy().to_dict("records"),
-    page_size=10,  # Number of rows per page
-    page_current=0,  # Current page
+data_table_production = html.Div(
+    dash_table.DataTable(
+        id="stads_id_production",
+        data=dt.stads_df.copy().to_dict("records"),
+        page_size=10,  # Number of rows per page
+        page_current=0,  # Current page
+    ),
+    className="pretty_container",
 )
 
-data_table_consumption = dash_table.DataTable(
-    id="stads_id_consumption",
-    data=dt.stads_df.copy().to_dict("records"),
-    page_size=10,  # Number of rows per page
-    page_current=0,  # Current page
+data_table_consumption = html.Div(
+    dash_table.DataTable(
+        id="stads_id_consumption",
+        data=dt.stads_df.copy().to_dict("records"),
+        page_size=10,  # Number of rows per page
+        page_current=0,  # Current page
+    ),
+    className="pretty_container",
 )
 
 USmap = map.USmap(dt.stads_df)
@@ -287,19 +296,22 @@ def display_clicked_state(clickData):
         return ""
 
 
+energy_filters = html.Div(
+    [
+        # Energy filters container with flex layout
+        html.Div(
+            [consumption_filters, production_filters],
+            style={"display": "flex", "flex": "1"},
+        )
+    ],
+    style={"display": "flex", "flex-direction": "column"},
+    className="pretty_container",
+)
+
 app.layout = html.Div(
     [
         nav,
-        html.Div(
-            [
-                # Energy filters container with flex layout
-                html.Div(
-                    [consumption_filters, production_filters],
-                    style={"display": "flex", "flex": "1"},
-                )
-            ],
-            style={"display": "flex", "flex-direction": "column"},
-        ),
+        energy_filters,
         USmap,
         timeSlider,
         data_table_production,
