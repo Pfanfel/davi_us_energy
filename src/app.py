@@ -191,10 +191,13 @@ def update_energy_chart(
     fig = go.Figure()
 
     for energy_type in data_to_show["energy_type"].unique():
+        print(f" Energy type : {energy_type}")
         energy_type_data = data_to_show[data_to_show["energy_type"] == energy_type]
+        print(f" Our data for the plot : {energy_type_data}")
+        print(energy_type_data["Data"])
         fig.add_trace(
             go.Scatter(
-                x=energy_type_data["Year"],
+                x=list(range(1998, 2021)),
                 y=energy_type_data["Data"],
                 fill="tonexty",
                 mode="none",
@@ -202,7 +205,6 @@ def update_energy_chart(
             )
         )
 
-    fig = go.Figure()
     fig.update_layout(
         xaxis_title="Year",
         yaxis_title="Data",
@@ -215,15 +217,47 @@ def update_energy_chart(
     # if a single year is selected, then we have a vertical line on the stacked area chart
     # that highlight that year
     if len(time_range) == 1:
-        fig.update_layout()
+        selected_year = time_range[0]
+        fig.update_layout(
+            shapes=[
+                dict(
+                    type="line",
+                    x0=selected_year,
+                    x1=selected_year,
+                    y0=0,
+                    y1=1,
+                    xref="x",
+                    yref="paper",
+                    line=dict(color="grey", width=2),
+                )
+            ]
+        )
+        return fig
+
+
     # if two years are selected, then we have two vertical lines that create and the area
     # in the middle is highlighted
 
-    if time_range and len(time_range) == 2:
-        return fig.update_layout()
+    if len(time_range) == 2:
+        min_year, max_year = time_range
+        fig.update_layout(
+            shapes=[
+                dict(
+                    type="rect",
+                    x0=min_year,
+                    x1=max_year,
+                    y0=0,
+                    y1=1,
+                    xref="x",
+                    yref="paper",
+                    fillcolor="rgba(0,100,80,0.2)",  # Set the fill color for the selected interval
+                    line=dict(width=0),
+                )
+            ]
+        )
+        return fig
 
     return fig
-
 
 @app.callback(
     [Output("year-slider", "disabled"),
