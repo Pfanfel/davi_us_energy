@@ -3,10 +3,10 @@ from dash import Dash, html, dash_table
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 import dash
-from components import navbar, footer, timeSlider, map, stackAreaChart
+from components import navbar, footer, timeSlider, map, stackAreaChart, categories_overivew
 import feffery_antd_components as fac
 import pandas as pd
-from dash import Input, Output
+from dash import Input, Output, State
 from helpers.filter import (
     filterData,
     filterByValues,
@@ -15,6 +15,8 @@ from helpers.filter import (
 )
 from data import data as dt
 import plotly.graph_objects as go
+
+from src.components.categoryPicker import CategoryPicker
 
 # Initialize the app
 app = dash.Dash(
@@ -85,19 +87,6 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
     return current_data_df.to_dict("records")
 
 
-# TODO: Move to sepatate file?
-def CreateCategoryFilteringTree(categories, id, placeHolder):
-    antd_tree_select = fac.AntdTreeSelect(
-        id=id,
-        treeData=categories,
-        multiple=True,
-        treeCheckable=True,
-        treeLine=True,
-        treeDefaultExpandAll=True,
-        placeholder=placeHolder,
-    )
-
-    return antd_tree_select
 
 
 # define the navbar and footer
@@ -106,6 +95,15 @@ footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
 USmap = map.USmap(dt.df_states)
 stackChart = stackAreaChart.StackAreaChart()
+consumption_filters = categories_overivew.CreateCategoryFilteringTree(
+    dt.consumption, "consumption-filter", "Energy Consumption", ["total_energy_consumption"]
+)
+
+production_filters = categories_overivew.CreateCategoryFilteringTree(
+    dt.consumption, "production-filter", "Energy Production"
+)
+
+categoryPicker = CategoryPicker(consumption_filters, production_filters)
 
 data_table = html.Div(dash_table.DataTable(
     id="stads_id",
@@ -114,13 +112,44 @@ data_table = html.Div(dash_table.DataTable(
     page_current=0,  # Current page
 ), className="pretty_container")
 
-consumption_filters = CreateCategoryFilteringTree(
-    dt.consumption, "consumption-filter", "Energy Consumption"
-)
 
-production_filters = CreateCategoryFilteringTree(
-    dt.consumption, "production-filter", "Energy Production"
+
+@app.callback(
+    Output("consumption-filter", "value"),
+    [Input("production-filter", "value"),
+     Input("category-toggle", "on")],
+    [State("consumption-filter", "value")]
 )
+def clear_consumption_filter(selected_production, toggle_on, current_consumption_value):
+    # If production filter is selected, clear the consumption filter
+    if not toggle_on and selected_production:
+        return []
+
+    return current_consumption_value
+
+@app.callback(
+    Output("production-filter", "value"),
+    [Input("consumption-filter", "value"),
+     Input("category-toggle", "on")],
+    [State("production-filter", "value")]
+)
+def clear_production_filter(selected_consumption,toggle_on, current_production_value):
+    # If consumption filter is selected, clear the production filter
+    if not toggle_on and selected_consumption:
+        return []
+
+    return current_production_value
+
+@app.callback(
+     Output("category-toggle", "label"),
+    Input("category-toggle", "on"),
+)
+def setLabel_categories_switch(on):
+    if on:
+        return "Combined Analysis"
+    else:
+        return "Separate Analysis"
+
 
 
 @app.callback(
@@ -138,11 +167,10 @@ def update_energy_chart(
 ):
     state_code = "US"
     data_to_show = pd.DataFrame(dt.stads_df)
-    selected_categories = []
+    selected_categories = [get_all_children_of_category('total_energy_consumption', dt.consumption)]
 
     # should we take the children or on the same level?
     if selected_production_categories:
-        data_to_show = filter_dataframe_by_tree(dt.production, data_to_show)
         selected_categories = get_all_categories_at_same_level(
             selected_production_categories[0], dt.production
         )
@@ -151,7 +179,6 @@ def update_energy_chart(
         data_to_show = filterByValues(selected_categories, data_to_show)
 
     elif selected_consumption_categories:
-        data_to_show = filter_dataframe_by_tree(dt.consumption, data_to_show)
         selected_categories = get_all_categories_at_same_level(
             selected_consumption_categories[0], dt.consumption
         )
@@ -234,12 +261,9 @@ def display_clicked_state(clickData):
 energy_filters = html.Div(
     [
         # Energy filters container with flex layout
-        html.Div(
-            [consumption_filters, production_filters],
-            style={"display": "flex", "flex": "1"},
-        )
+        categoryPicker
     ],
-    style={"display": "flex", "flex-direction": "column"},
+    style={"display": "flex", "flex-direction": "column", "flex": "0.5"},
     className="pretty_container",
 )
 

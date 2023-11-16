@@ -1,9 +1,8 @@
 import feffery_antd_components as fac
 from dash import html
 
-
-def CreateCategoryFilteringTree(categories, id, placeHolder):
-    antd_tree_selector = fac.AntdTreeSelect(
+def CreateCategoryFilteringTree(categories, id, placeHolder, defaultSelected=[]):
+    antd_tree_select = fac.AntdTreeSelect(
         id=id,
         treeData=categories,
         multiple=True,
@@ -11,10 +10,9 @@ def CreateCategoryFilteringTree(categories, id, placeHolder):
         treeLine=True,
         treeDefaultExpandAll=True,
         placeholder=placeHolder,
-        style={"width": "auto"},  # Set the width to 'auto'
+        defaultValue=defaultSelected,
     )
-
     return html.Div(
-        children=[antd_tree_selector],
+        children=[html.H4(placeHolder), antd_tree_select],
         className="pretty_container",
     )
