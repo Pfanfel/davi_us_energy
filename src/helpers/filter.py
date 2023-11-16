@@ -15,7 +15,7 @@ def find_root_node(tree, target_title):
 def get_category_value_and_level(category_key, tree, current_level=0):
     for node in tree:
         if node["key"] == category_key:
-            return node["value"], current_level
+            return find_level(tree, node["key"]), current_level
         if "children" in node:
             child_value, child_level = get_category_value_and_level(
                 category_key, node["children"], current_level + 1
@@ -24,6 +24,15 @@ def get_category_value_and_level(category_key, tree, current_level=0):
                 return child_value, child_level
     return None, None
 
+def find_level(tree, key_to_find, current_level=0):
+    for node in tree:
+        if node['key'] == key_to_find:
+            return current_level
+        elif 'children' in node:
+            level = find_level(node['children'], key_to_find, current_level + 1)
+            if level is not None:
+                return level
+    return None
 
 def get_all_categories_at_same_level(category, tree):
     categories = []
@@ -33,9 +42,9 @@ def get_all_categories_at_same_level(category, tree):
         nonlocal target_level
 
         if node["key"] == category:
-            target_level = node["value"]
+            target_level = find_level(tree, node["key"])
 
-        if node["value"] == target_level:
+        if find_level(tree, node["key"]) == target_level:
             categories.append(node["key"])
 
         if "children" in node:
@@ -114,7 +123,7 @@ def filter_dataframe_by_tree(df, tree, parent_condition=None, level=0):
     if not tree:
         return df
 
-    current_level_nodes = [node for node in tree if node["value"] == level]
+    current_level_nodes = [node for node in tree if find_level(tree, node["key"]) == level]
     condition = parent_condition
 
     for node in current_level_nodes:

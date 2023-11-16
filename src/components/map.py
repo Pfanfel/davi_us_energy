@@ -11,7 +11,7 @@ def USmap(dataframe):
         geojson=px.data.gapminder().query("country == 'USA'").to_dict("records"),
         locations="StateCode",
         locationmode="USA-states",
-        hover_name="full_state_code",
+        hover_name="full_state_name",
         scope="usa",
     )
 

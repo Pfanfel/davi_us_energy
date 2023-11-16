@@ -16,7 +16,6 @@ from helpers.filter import (
 from data import data as dt
 import plotly.graph_objects as go
 
-
 # Initialize the app
 app = dash.Dash(
     __name__,
@@ -38,13 +37,12 @@ app = dash.Dash(
 
 @app.callback(
     Output("stads_id", "data"),
-    Input("production-filter", "value"),
-    Input("consumption-filter", "value"),
-    Input("year-slider", "value"),
-    Input("choropleth-map", "clickData"),
+    [Input("production-filter", "value"),
+     Input("consumption-filter", "value"),
+     Input("year-slider", "value"),
+     Input("choropleth-map", "clickData")],
     prevent_initial_call=True,
 )
-
 def handle_select_event(selected_production, selected_consumption, time_range, click_data):
     current_data_df = pd.DataFrame(dt.stads_df.copy())  # Convert the data to a DataFrame
 
@@ -53,13 +51,10 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
             "records"
         )  # No filters selected, return the current data as is
 
-
     if selected_production:
-        current_data_df = filter_dataframe_by_tree(dt.production, current_data_df)
         current_data_df = filterByValues(selected_production, current_data_df)
 
     elif selected_consumption:
-        current_data_df = filter_dataframe_by_tree(dt.consumption, current_data_df)
         current_data_df = filterByValues(selected_consumption, current_data_df)
 
     # Handle when the checkbox is selected, and the range is empty, but a single year is selected
@@ -67,28 +62,25 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
         single_year = time_range[0]
         single_year = int(single_year)
         current_data_df = current_data_df[current_data_df["Year"] == single_year]
-        if not current_data_df.empty:
-            return current_data_df.to_dict("records")
-        else:
-            return ["No data selected"]
 
     if time_range and len(time_range) == 2:
         min_year, max_year = time_range
         min_year = int(min_year)
         max_year = int(max_year)
 
-        filtered_data_copy = current_data_df[
+        current_data_df = current_data_df[
             (current_data_df["Year"] >= min_year)
             & (current_data_df["Year"] <= max_year)
-        ]
-        filtered_data = filtered_data_copy
+            ]
 
     if click_data:
         print("Map was clicked")
         state_code = click_data["points"][0]["location"]
         print(f"Clicked state {state_code}")
-        current_data_df = current_data_df([state_code], current_data_df, "StateCode")
+        current_data_df = filterData([state_code], current_data_df, "StateCode")
 
+    if current_data_df.empty:
+        return dt.stads_df.to_dict("records")
 
     return current_data_df.to_dict("records")
 
@@ -112,6 +104,7 @@ def CreateCategoryFilteringTree(categories, id, placeHolder):
 nav = navbar.Navbar()
 footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
+USmap = map.USmap(dt.df_states)
 stackChart = stackAreaChart.StackAreaChart()
 
 data_table = html.Div(dash_table.DataTable(
@@ -119,18 +112,12 @@ data_table = html.Div(dash_table.DataTable(
     data=dt.stads_df.copy().to_dict("records"),
     page_size=10,  # Number of rows per page
     page_current=0,  # Current page
-),className="pretty_container")
-
-
-
-USmap = map.USmap(dt.stads_df)
-USmapHEX = map.USHexMap(dt.stads_df)
-stackChart = stackAreaChart.StackAreaChart()
-
+), className="pretty_container")
 
 consumption_filters = CreateCategoryFilteringTree(
     dt.consumption, "consumption-filter", "Energy Consumption"
 )
+
 production_filters = CreateCategoryFilteringTree(
     dt.consumption, "production-filter", "Energy Production"
 )
@@ -138,16 +125,16 @@ production_filters = CreateCategoryFilteringTree(
 
 @app.callback(
     Output("energy-chart", "figure"),
-    Input("production-filter", "value"),
-    Input("consumption-filter", "value"),
-    Input("year-slider", "value"),
-    Input("choropleth-map", "clickData"),
+    [Input("production-filter", "value"),
+     Input("consumption-filter", "value"),
+     Input("year-slider", "value"),
+     Input("choropleth-map", "clickData")]
 )
 def update_energy_chart(
-    selected_production_categories,
-    selected_consumption_categories,
-    time_range,
-    click_data,
+        selected_production_categories,
+        selected_consumption_categories,
+        time_range,
+        click_data,
 ):
     state_code = "US"
     data_to_show = pd.DataFrame(dt.stads_df)
@@ -212,17 +199,17 @@ def update_energy_chart(
 
 
 @app.callback(
-    Output("year-slider", "disabled"),
-    Output("year-slider", "value"),
-    Output("year-toggle", "label"),  # Add an Output for the label
+    [Output("year-slider", "disabled"),
+     Output("year-slider", "value"),
+     Output("year-toggle", "label")],  # Add an Output for the label
     Input("year-toggle", "on"),
 )
 def update_slider_state(on):
     label = setLabel(on)  # Calculate the label based on the toggle state
     if on:
-        return False, [1960], label  # Return label as a part of the tuple
+        return False, [1998], label  # Return label as a part of the tuple
     else:
-        return False, [1960, 2021], label  # Return label as a part of the tuple
+        return False, [1998, 2021], label  # Return label as a part of the tuple
 
 
 def setLabel(on):
@@ -233,8 +220,8 @@ def setLabel(on):
 
 
 @app.callback(
-    Output("output-state-click", "children"), Input("choropleth-map", "clickData")
-)
+    Output("output-state-click", "children"),
+    Input("choropleth-map", "clickData"))
 def display_clicked_state(clickData):
     if clickData is not None:
         state_code = clickData["points"][0]["hovertext"]
