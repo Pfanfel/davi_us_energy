@@ -7,7 +7,7 @@ import pandas as pd
 
 
 stads_df = pd.read_csv(
-    "C:/Users/MichalinaJanik/USA_merged/src/data/stads_data_parsed_cleaned_pop_gdp_v1_only_from_1998.csv"
+    "C:/Users/Michalina/Deep_Learning/davi_us_energy/src/data/stads_data_parsed_cleaned_pop_gdp_v1_only_from_1998.csv"
 )
 
 

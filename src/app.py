@@ -3,7 +3,7 @@ from dash import Dash, html, dash_table
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 import dash
-from components import navbar, footer, timeSlider, map, stackAreaChart, categories_overivew
+from components import navbar, footer, timeSlider, map, stackAreaChart, categories_overivew, mapContainer
 import feffery_antd_components as fac
 import pandas as pd
 from dash import Input, Output, State
@@ -16,7 +16,7 @@ from helpers.filter import (
 from data import data as dt
 import plotly.graph_objects as go
 
-from src.components.categoryPicker import CategoryPicker
+from components.categoryPicker import CategoryPicker
 
 # Initialize the app
 app = dash.Dash(
@@ -42,10 +42,11 @@ app = dash.Dash(
     [Input("production-filter", "value"),
      Input("consumption-filter", "value"),
      Input("year-slider", "value"),
-     Input("choropleth-map", "clickData")],
+     Input("choropleth-map-consumption", "clickData"),
+     Input("choropleth-map-production", "clickData")],
     prevent_initial_call=True,
 )
-def handle_select_event(selected_production, selected_consumption, time_range, click_data):
+def handle_select_event(selected_production, selected_consumption, time_range, click_data_consumption, click_data_production):
     current_data_df = pd.DataFrame(dt.stads_df.copy())  # Convert the data to a DataFrame
 
     if not selected_production and not selected_consumption and not time_range and not click_data:
@@ -56,8 +57,21 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
     if selected_production:
         current_data_df = filterByValues(selected_production, current_data_df)
 
+        if click_data_production:
+            print("Map was clicked")
+            state_code = click_data_production["points"][0]["location"]
+            print(f"Clicked state {state_code}")
+            current_data_df = filterData([state_code], current_data_df, "StateCode")
+
+
     elif selected_consumption:
         current_data_df = filterByValues(selected_consumption, current_data_df)
+
+        if click_data_consumption:
+            print("Map was clicked")
+            state_code = click_data_consumption["points"][0]["location"]
+            print(f"Clicked state {state_code}")
+            current_data_df = filterData([state_code], current_data_df, "StateCode")
 
     # Handle when the checkbox is selected, and the range is empty, but a single year is selected
     if len(time_range) == 1:
@@ -75,11 +89,6 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
             & (current_data_df["Year"] <= max_year)
             ]
 
-    if click_data:
-        print("Map was clicked")
-        state_code = click_data["points"][0]["location"]
-        print(f"Clicked state {state_code}")
-        current_data_df = filterData([state_code], current_data_df, "StateCode")
 
     if current_data_df.empty:
         return dt.stads_df.to_dict("records")
@@ -93,7 +102,9 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
 nav = navbar.Navbar()
 footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
-USmap = map.USmap(dt.df_states)
+USmapConsumption = map.USmap(dt.df_states, "choropleth-map-consumption", "US State map consumption")
+USmapProduction = map.USmap(dt.df_states, "choropleth-map-production", "US State map production")
+mapContainer = mapContainer.MapContainer()
 stackChart = stackAreaChart.StackAreaChart()
 consumption_filters = categories_overivew.CreateCategoryFilteringTree(
     dt.consumption, "consumption-filter", "Energy Consumption", ["total_energy_consumption"]
@@ -115,7 +126,7 @@ data_table = html.Div(dash_table.DataTable(
 
 
 @app.callback(
-    Output("consumption-filter", "value"),
+    Output("consumptionconsu-filter", "value"),
     [Input("production-filter", "value"),
      Input("category-toggle", "on")],
     [State("consumption-filter", "value")]
@@ -157,7 +168,7 @@ def setLabel_categories_switch(on):
     [Input("production-filter", "value"),
      Input("consumption-filter", "value"),
      Input("year-slider", "value"),
-     Input("choropleth-map", "clickData")]
+     Input("choropleth-map-consumption", "clickData")]
 )
 def update_energy_chart(
         selected_production_categories,
@@ -282,7 +293,7 @@ def setLabel(on):
 
 @app.callback(
     Output("output-state-click", "children"),
-    Input("choropleth-map", "clickData"))
+    Input("choropleth-map-consumption", "clickData"))
 def display_clicked_state(clickData):
     if clickData is not None:
         state_code = clickData["points"][0]["hovertext"]
@@ -301,11 +312,13 @@ energy_filters = html.Div(
     className="pretty_container",
 )
 
+
+
 app.layout = html.Div(
     [
         nav,
         energy_filters,
-        USmap,
+        mapContainer,
         timeSlider,
         data_table,
         stackChart,
@@ -314,8 +327,33 @@ app.layout = html.Div(
     style={"display": "flex", "flex-direction": "column"},
 )
 
-print(get_all_categories_at_same_level("coal", dt.production))
-print(get_all_children_of_category("renewable energy", dt.production))
+# Define callback to update the map visibility based on the boolean switch
+@app.callback(
+    [Output('consumption-map-container', 'children'),
+     Output('conditional-map-container', 'children')],
+    Input('category-toggle', 'on')
+)
+def update_map_visibility(not_show_both_maps):
+    if not_show_both_maps:
+        return [USmapConsumption, USmapProduction], [html.Div(), html.Div()]
+    else:
+        return [USmapConsumption], [USmapProduction]
+
+
+@app.callback(
+    [Output('consumption-map-container', 'style'),
+     Output('conditional-map-container', 'style')],
+    Input('category-toggle', 'on')
+)
+def toggle_consumption_map_visibility(toggle_state):
+    if not toggle_state:
+        return {"flex": "0", "display": "flex"}, {"flex": "1", "display": "none"}
+
+    return {"flex": "1", "display": "flex"}, {"flex": "1", "display": "flex"}
+
+
+
+
 # Run the app
 if __name__ == "__main__":
     app.run(debug=True)

@@ -3,7 +3,7 @@ from dash import html
 import plotly.express as px
 
 
-def USmap(dataframe):
+def USmap(dataframe, id, title):
     colorscale = ["#f1a340", "#f7f7f7", "#998ec3"]
 
     fig = px.choropleth(
@@ -15,13 +15,13 @@ def USmap(dataframe):
         scope="usa",
     )
 
-    # Update the layout to include the hover template
-    fig.update_layout(title="US State Choropleth Map")
+    # Update the layout to include the hover temsplate
+    fig.update_layout(title=title)
 
     return html.Div(
         [
             dcc.Graph(
-                id="choropleth-map",
+                id=id,
                 figure=fig,
                 style={"width": "100%", "height": "500px"},
             )
