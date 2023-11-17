@@ -5,11 +5,9 @@ This file is used to load data from the data folder and perform any data manipul
 # Import Pandas
 import pandas as pd
 
-
 stads_df = pd.read_csv(
     "C:/Users/Michalina/Deep_Learning/davi_us_energy/src/data/stads_data_parsed_cleaned_pop_gdp_v1_only_from_1998.csv"
 )
-
 
 # Hardcoded list of values for a ui element
 
@@ -19,11 +17,11 @@ production = [{
     'key': "production",
     'value': "production",
     'children':
-            [{
-                'title': "coal",
-                'key': "coal",
-                'value': "coal"
-            },
+        [{
+            'title': "coal",
+            'key': "coal",
+            'value': "coal"
+        },
             {
                 'title': "natural gas, including supplemental gaseous fuels",
                 'key': "natural gas, including supplemental gaseous fuels",
@@ -59,9 +57,11 @@ production = [{
                         'key': "renewable_energy_other",
                         'value': "renewable_energy_other"
 
-                }],
+                    }],
             }]
 }]
+
+
 
 consumption = [{
     'title': "total energy consumption",
@@ -166,169 +166,45 @@ consumption = [{
         }
     ]
 }]
+def create_hierarchy_list(node):
+    hierarchy_list = [node['key']]
+
+    if 'children' in node:
+        children_list = []
+        for child in node['children']:
+            child_list = create_hierarchy_list(child)
+            children_list.extend(child_list)
+        hierarchy_list.append(children_list)
+
+    return hierarchy_list
+
+# Assuming consumption is your hierarchical structure
+hierarchy_list = create_hierarchy_list(consumption[0])
+print(hierarchy_list)
 
 
-#
-# production = [
-#     {
-#         "title": "total energy production",
-#         "key": "production",
-#         "value": 0,
-#         "children": [
-#             {"title": "coal", "key": "coal", "value": 1},  # Update the value to the level value
-#             {
-#                 "title": "natural gas, including supplemental gaseous fuels",
-#                 "key": "natural gas, including supplemental gaseous fuels",
-#                 "value": 1,
-#             },
-#             {
-#                 "title": "natural gas, excluding supplemental gaseous fuels",
-#                 "key": "natural gas, excluding supplemental gaseous fuels",
-#                 "value": 1,
-#             },
-#             {
-#                 "title": "nuclear electric power",
-#                 "key": "nuclear electric power",
-#                 "value": 1,
-#             },
-#             {
-#                 "title": "renewable energy",
-#                 "key": "renewable energy",
-#                 "value": 1,
-#                 "children": [
-#                     {"title": "biofuels", "key": "biofuels", "value": 2},
-#                     {
-#                         "title": "wood and waste",
-#                         "key": "wood and waste",
-#                         "value": 2,
-#                     },
-#                     {
-#                         "title": "other",
-#                         "key": "renewable_energy_other",
-#                         "value": 2,
-#                     },
-#                 ],
-#             },
-#         ],
-#     }
-# ]
-#
-#
-# consumption = [
-#     {
-#         "title": "total energy consumption",
-#         "key": "total_energy_consumption",
-#         "value": 0,
-#         "children": [
-#             {
-#                 "title": "fossil fuels",
-#                 "key": "fossil fuels",
-#                 "value": 1,
-#                 "children": [
-#                     {"title": "coal", "key": "coal", "value": 2},
-#                     {
-#                         "title": "natural gas, including supplemental gaseous fuels",
-#                         "key": "natural gas, including supplemental gaseous fuels",
-#                         "value": 2,
-#                     },
-#                     {
-#                         "title": "natural gas, excluding supplemental gaseous fuels",
-#                         "key": "natural gas, excluding supplemental gaseous fuels",
-#                         "value": 2,
-#                     },
-#                 ],
-#             },
-#             {
-#                 "title": "nuclear electric power",
-#                 "key": "nuclear electric power",
-#                 "value": 1,
-#             },
-#             {
-#                 "title": "renewable energy",
-#                 "key": "renewable energy",
-#                 "value": 1,
-#                 "children": [
-#                     {
-#                         "title": "hydroelectric power",
-#                         "key": "hydroelectric power",
-#                         "value": 2,
-#                     },
-#                     {
-#                         "title": "biomass",
-#                         "key": "biomass",
-#                         "value": 2,
-#                         "children": [
-#                             {
-#                                 "title": "wood and waste",
-#                                 "key": "wood and waste",
-#                                 "value": 3,
-#                             },
-#                             {
-#                                 "title": "fuel ethanol, excluding denaturant",
-#                                 "key": "fuel ethanol, excluding denaturant",
-#                                 "value": 3,
-#                             },
-#                             {
-#                                 "title": "biodiesel",
-#                                 "key": "biodiesel",
-#                                 "value": 3,
-#                             },
-#                             {
-#                                 "title": "renewable diesel",
-#                                 "key": "renewable diesel",
-#                                 "value": 3,
-#                             },
-#                             {
-#                                 "title": "energy losses and co-products (biofuels only)",
-#                                 "key": "energy losses and co-products (biofuels only)",
-#                                 "value": 3,
-#                             },
-#                         ],
-#                     },
-#                     {
-#                         "title": "geothermal energy",
-#                         "key": "geothermal energy",
-#                         "value": 2,
-#                     },
-#                     {
-#                         "title": "photovoltaic and solar thermal energy",
-#                         "key": "photovoltaic and solar thermal energy",
-#                         "value": 2,
-#                     },
-#                     {"title": "wind", "key": "wind", "value": 2},
-#                 ],
-#             },
-#             {
-#                 "title": "interstate flow (electricity only)",
-#                 "key": "interstate flow (electricity only)",
-#                 "value": 1,
-#             },
-#             {"title": "net imports", "key": "net imports", "value": 1},
-#         ],
-#     }
-# ]
 
 
 energy_activities = [
     {
         "title": "energy activities",
         "key": "energy_activity",
-        "value": 0,
+        "value": "energy_activity",
         "children": [
             {
                 "title": "energy generation",
                 "key": "energy generation",
-                "value": 1,
+                "value": "energy generation",
                 "children": [
                     {
                         "title": "production",
                         "key": "production",
-                        "value": 2,
+                        "value": "production",
                         "children": [
                             {
                                 "title": "marketed production",
                                 "key": "marketed production",
-                                "value": 2,
+                                "value": "marketed production",
                             }
                         ],
                     }
@@ -337,56 +213,57 @@ energy_activities = [
             {
                 "title": "energy consumption",
                 "key": "energy consumption",
-                "value": 1,
+                "value": "energy consumption",
                 "children": [
                     {
                         "title": "total consumption of all energy-consuming sectors",
                         "key": "total consumption of all energy-consuming sectors",
-                        "value": 2,
+                        "value": "total consumption of all energy-consuming sectors",
                         "children": [
                             {
                                 "title": "residential sector consumption",
                                 "key": "residential sector consumption",
-                                "value": 3,
+                                "value": "residential sector consumption",
                             },
                             {
                                 "title": "commercial sector consumption",
                                 "key": "commercial sector consumption",
-                                "value": 3,
+                                "value": "commercial sector consumption",
                             },
                             {
                                 "title": "industrial sector consumption",
                                 "key": "industrial sector consumption",
-                                "value": 3,
+                                "value": "industrial sector consumption",
                             },
                             {
                                 "title": "transportation sector consumption",
                                 "key": "transportation sector consumption",
-                                "value": 3,
+                                "value": "transportation sector consumption",
                             },
                         ],
                     },
                     {
                         "title": "total consumption for electricity generation (nuclear only)",
                         "key": "total consumption for electricity generation (nuclear only)",
-                        "value": 2,
+                        "value": "total consumption for electricity generation (nuclear only)",
                     },
                 ],
             },
             {
                 "title": "interstate flow (electricity only)",
                 "key": "interstate flow (electricity only)",
-                "value": 1,
+                "value": "interstate flow (electricity only)",
             },
             {"title": "net imports", "key": "net imports", "value": "net imports"},
             {
                 "title": "energy losses and co-products (biofuels only)",
                 "key": "energy losses and co-products (biofuels only)",
-                "value": 1,
+                "value": "energy losses and co-products (biofuels only)",
             },
         ],
     }
 ]
+
 
 
 energy_categories_types = [
@@ -481,9 +358,8 @@ energy_categories_types = [
     }
 ]
 
-
 category_trees = [energy_activities, energy_categories_types]
-
+hierarchy_list_energy_types = create_hierarchy_list(energy_categories_types[0])
 states_dict = {
     "AK": "Alaska",
     "AL": "Alabama",
@@ -545,6 +421,4 @@ states_dict = {
 df_states = pd.DataFrame(list(states_dict.items()), columns=['StateCode', 'full_state_name'])
 
 
-# For derived values or values that need to be calculated from the data
-def some_calculation(param1, param2):
-    return param1 + param2
+

@@ -24,7 +24,7 @@ def Navbar():
                             ),
                             dbc.Col(
                                 dbc.NavbarBrand(
-                                    "Awsome US Energy Production and Consumption by State",
+                                    "Awesome US Energy Production and Consumption by State",
                                     className="ms-2",
                                 )
                             ),
