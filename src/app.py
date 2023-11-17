@@ -90,9 +90,6 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
             & (current_data_df["Year"] <= max_year)
             ]
 
-    if click_data:
-        state_code = click_data["points"][0]["location"]
-        current_data_df = filterData([state_code], current_data_df, "StateCode")
 
     if current_data_df.empty:
         return dt.stads_df.to_dict("records")
@@ -297,7 +294,7 @@ def setLabel(on):
 @app.callback(
     Output("sun-chart", "figure"),
     [Input("year-slider", "value"),
-     Input("choropleth-map", "clickData")])
+     Input("choropleth-map-consumption", "clickData")])
 def sun_energy_chart(time_range, click_data):
     state_code = "US"
     current_data_df = pd.DataFrame(dt.stads_df)
@@ -390,7 +387,7 @@ app.layout = html.Div(
 # Define callback to update the map visibility based on the boolean switch
 @app.callback(
     [Output('consumption-map-container', 'children'),
-     Output('conditional-map-container', 'children')],
+     Output('conditional-masp-container', 'children')],
     Input('category-toggle', 'on')
 )
 def update_map_visibility(not_show_both_maps):
