@@ -12,7 +12,7 @@ from helpers.filter import (
     filterData,
     filterByValues,
     get_all_categories_at_same_level,
-    get_all_children_of_category, filter_dataframe_by_tree, getDict
+    get_all_children_of_category, filter_dataframe_by_tree
 )
 from data import data as dt
 import plotly.graph_objects as go
