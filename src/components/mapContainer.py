@@ -6,8 +6,9 @@ import plotly.express as px
 # components/mapContainer.py
 from dash import dcc, html
 
-def MapContainer():
+def MapContainer(USmapConsumption, USmapProduction):
     return html.Div([
-        html.Div(id='consumption-map-container', style={"flex": "1"}),
-        html.Div(id='conditional-map-container', style={"flex": "1", "display": "none"}),
+        html.Div([USmapConsumption], id='consumption-map-container', style={"flex": "1"}),
+        html.Div([USmapProduction], id='conditional-map-container', style={"flex": "1", "display": "none"}),
     ], style={"display": "flex", "flex-direction": "row", "flex": "1"}, className='row')
+

@@ -87,8 +87,7 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
 
         current_data_df = current_data_df[
             (current_data_df["Year"] >= min_year)
-            & (current_data_df["Year"] <= max_year)
-            ]
+            & (current_data_df["Year"] <= max_year)]
 
 
     if current_data_df.empty:
@@ -105,7 +104,7 @@ footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
 USmapConsumption = map.USmap(dt.df_states, "choropleth-map-consumption", "US State map consumption")
 USmapProduction = map.USmap(dt.df_states, "choropleth-map-production", "US State map production")
-mapContainer = mapContainer.MapContainer()
+mapContainer = mapContainer.MapContainer(USmapConsumption, USmapProduction)
 sunChart = sunbursChart.SunburstChart()
 stackChart = stackAreaChart.StackAreaChart()
 consumption_filters = categories_overivew.CreateCategoryFilteringTree(
@@ -298,7 +297,6 @@ def setLabel(on):
 def sun_energy_chart(time_range, click_data):
     state_code = "US"
     current_data_df = pd.DataFrame(dt.stads_df)
-    # selected_categories = [get_all_children_of_category('total_energy_consumption', dt.consumption)]
 
     if click_data:
         state_code = click_data["points"][0]["location"]
@@ -384,18 +382,6 @@ app.layout = html.Div(
     style={"display": "flex", "flex-direction": "column"},
 )
 
-# Define callback to update the map visibility based on the boolean switch
-@app.callback(
-    [Output('consumption-map-container', 'children'),
-     Output('conditional-masp-container', 'children')],
-    Input('category-toggle', 'on')
-)
-def update_map_visibility(not_show_both_maps):
-    if not_show_both_maps:
-        return [USmapConsumption, USmapProduction], [html.Div(), html.Div()]
-    else:
-        return [USmapConsumption], [USmapProduction]
-
 
 @app.callback(
     [Output('consumption-map-container', 'style'),
@@ -406,7 +392,7 @@ def toggle_consumption_map_visibility(toggle_state):
     if not toggle_state:
         return {"flex": "0", "display": "flex"}, {"flex": "1", "display": "none"}
 
-    return {"flex": "1", "display": "flex"}, {"flex": "1", "display": "flex"}
+    return {"flex": "0", "display": "flex"}, {"flex": "1", "display": "flex"}
 
 
 
