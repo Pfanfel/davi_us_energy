@@ -20,6 +20,7 @@ import plotly.graph_objects as go
 from components.categoryPicker import CategoryPicker
 from dash.dependencies import ClientsideFunction, Output
 import geopandas as gpd
+
 # Initialize the app
 app = dash.Dash(
     __name__,
@@ -48,10 +49,11 @@ app = dash.Dash(
      Input("choropleth-map-production", "clickData")],
     prevent_initial_call=True,
 )
-def handle_select_event(selected_production, selected_consumption, time_range, click_data_consumption, click_data_production):
+def handle_select_event(selected_production, selected_consumption, time_range, click_data_consumption,
+                        click_data_production):
     current_data_df = pd.DataFrame(dt.stads_df.copy())  # Convert the data to a DataFrame
 
-    if not selected_production and not selected_consumption and not time_range and not click_data:
+    if not selected_production and not selected_consumption and not time_range and not click_data_consumption and not click_data_production:
         return current_data_df.to_dict(
             "records"
         )  # No filters selected, return the current data as is
@@ -90,13 +92,10 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
             (current_data_df["Year"] >= min_year)
             & (current_data_df["Year"] <= max_year)]
 
-
     if current_data_df.empty:
         return dt.stads_df.to_dict("records")
 
     return current_data_df.to_dict("records")
-
-
 
 
 # define the navbar and footer
@@ -126,7 +125,6 @@ data_table = html.Div(dash_table.DataTable(
 ), className="pretty_container")
 
 
-
 @app.callback(
     Output("consumption-filter", "value"),
     [Input("production-filter", "value"),
@@ -140,21 +138,23 @@ def clear_consumption_filter(selected_production, toggle_on, current_consumption
 
     return current_consumption_value
 
+
 @app.callback(
     Output("production-filter", "value"),
     [Input("consumption-filter", "value"),
      Input("category-toggle", "on")],
     [State("production-filter", "value")]
 )
-def clear_production_filter(selected_consumption,toggle_on, current_production_value):
+def clear_production_filter(selected_consumption, toggle_on, current_production_value):
     # If consumption filter is selected, clear the production filter
     if not toggle_on and selected_consumption:
         return []
 
     return current_production_value
 
+
 @app.callback(
-     Output("category-toggle", "label"),
+    Output("category-toggle", "label"),
     Input("category-toggle", "on"),
 )
 def setLabel_categories_switch(on):
@@ -162,7 +162,6 @@ def setLabel_categories_switch(on):
         return "Combined Analysis"
     else:
         return "Separate Analysis"
-
 
 
 @app.callback(
@@ -243,7 +242,6 @@ def update_energy_chart(
         )
         return fig
 
-
     # if two years are selected, then we have two vertical lines that create and the area
     # in the middle is highlighted
 
@@ -288,7 +286,6 @@ def setLabel(on):
         return "Select Year"
     else:
         return "Select Time Interval"
-
 
 
 @app.callback(
@@ -388,13 +385,11 @@ geoData = gpd.read_file(url)
 geoData['centroid'] = geoData['geometry'].apply(lambda x: x.centroid)
 
 
-
 @app.callback(
     Output('choropleth-map-consumption', 'figure'),
-    Input('choropleth-map-consumption', 'relayoutData')
+    Input('choropleth-map-consumption', 'clickData')
 )
-def update_map(relayout_data):
-
+def update_map(clickData):
     # Create a Scattermapbox trace for annotations
     annotations_trace = go.Scattermapbox(
         lon=geoData['centroid'].apply(lambda x: x.x),
@@ -421,7 +416,7 @@ def update_map(relayout_data):
     # Update the map layout
     fig.update_geos(
         fitbounds="locations",  # Adjust the bounds to fit the locations
-        visible=False,           # Hide the real map
+        visible=False,  # Hide the real map
     )
 
     # Add the annotations trace to the figure
@@ -430,15 +425,28 @@ def update_map(relayout_data):
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
     )
+
+    # Highlight the selected hexagon
+    if clickData and 'points' in clickData:
+        selected_state = clickData['points'][0]['text']
+        print("Selected State:", selected_state)
+
+        # Access the choropleth_mapbox trace and modify the marker color
+        for trace in fig.data:
+            if 'marker' in trace:
+                trace.marker.selected = {'marker': {
+                    'color': ['rgba(255, 0, 0, 0.5)' if state_code == selected_state else 'rgba(0, 0, 0, 0)' for
+                              state_code in geoData['iso3166_2']]}}
+
+
     return fig
 
 
 @app.callback(
     Output('choropleth-map-production', 'figure'),
-    Input('choropleth-map-production', 'relayoutData')
+    Input('choropleth-map-production', 'clickData')
 )
-def update_map_production(relayout_data):
-
+def update_map_production(clickData):
     # Create a Scattermapbox trace for annotations
     annotations_trace = go.Scattermapbox(
         lon=geoData['centroid'].apply(lambda x: x.x),
@@ -465,7 +473,7 @@ def update_map_production(relayout_data):
     # Update the map layout
     fig.update_geos(
         fitbounds="locations",  # Adjust the bounds to fit the locations
-        visible=False,           # Hide the real map
+        visible=False,  # Hide the real map
     )
 
     # Add the annotations trace to the figure
@@ -474,7 +482,21 @@ def update_map_production(relayout_data):
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
     )
+
+    # Highlight the selected hexagon
+    if clickData and 'points' in clickData:
+        selected_state = clickData['points'][0]['text']
+        print("Selected State:", selected_state)
+
+        # Access the choropleth_mapbox trace and modify the marker color
+        for trace in fig.data:
+            if 'marker' in trace:
+                trace.marker.selected = {'marker': {
+                    'color': ['rgba(255, 0, 0, 0.5)' if state_code == selected_state else 'rgba(0, 0, 0, 0)' for
+                              state_code in geoData['iso3166_2']]}}
+
     return fig
+
 
 @app.callback(
     [Output('consumption-map-container', 'style'),
@@ -486,9 +508,6 @@ def toggle_consumption_map_visibility(toggle_state):
         return {"flex": "0", "display": "flex"}, {"flex": "1", "display": "none"}
 
     return {"flex": "0", "display": "flex"}, {"flex": "1", "display": "flex"}
-
-
-
 
 
 # Run the app
