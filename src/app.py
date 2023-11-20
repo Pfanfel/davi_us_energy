@@ -1,4 +1,6 @@
 # Import packages
+import time
+
 from dash import Dash, html, dash_table
 from dash import html, dcc
 import dash_bootstrap_components as dbc
@@ -368,8 +370,7 @@ app.layout = html.Div(
     [
         nav,
         energy_filters,
-        USmapConsumption,
-        USmapProduction,
+        mapContainer,
         timeSlider,
         data_table,
         stackChart,
@@ -421,22 +422,25 @@ def update_map(clickData):
 
     # Add the annotations trace to the figure
     fig.add_trace(annotations_trace)
-    # Update the layout of the entire figure
-    fig.update_layout(
-        margin={"r": 0, "t": 0, "l": 0, "b": 0},
-    )
 
     # Highlight the selected hexagon
     if clickData and 'points' in clickData:
         selected_state = clickData['points'][0]['text']
         print("Selected State:", selected_state)
 
-        # Access the choropleth_mapbox trace and modify the marker color
-        for trace in fig.data:
-            if 'marker' in trace:
-                trace.marker.selected = {'marker': {
-                    'color': ['rgba(255, 0, 0, 0.5)' if state_code == selected_state else 'rgba(0, 0, 0, 0)' for
-                              state_code in geoData['iso3166_2']]}}
+        # Update the opacity for the selected hexagon
+        fig.update_traces(
+            marker=dict(
+                opacity=[1.0 if state_code == selected_state else 0.3 for state_code in geoData['iso3166_2']],
+            ),
+        )
+
+
+    # Update the layout of the entire figure
+    fig.update_layout(
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+    )
+
 
 
     return fig
@@ -488,12 +492,12 @@ def update_map_production(clickData):
         selected_state = clickData['points'][0]['text']
         print("Selected State:", selected_state)
 
-        # Access the choropleth_mapbox trace and modify the marker color
-        for trace in fig.data:
-            if 'marker' in trace:
-                trace.marker.selected = {'marker': {
-                    'color': ['rgba(255, 0, 0, 0.5)' if state_code == selected_state else 'rgba(0, 0, 0, 0)' for
-                              state_code in geoData['iso3166_2']]}}
+        # Update the opacity for the selected hexagon
+        fig.update_traces(
+            marker=dict(
+                opacity=[1.0 if state_code == selected_state else 0.3 for state_code in geoData['iso3166_2']],
+            ),
+        )
 
     return fig
 
