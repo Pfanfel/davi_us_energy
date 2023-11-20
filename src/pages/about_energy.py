@@ -1,22 +1,11 @@
-"""
-This is a static page that will be rendered at the path "/about_energy with information about energy in the US in general.
-"""
-
-from dash import (
-    html,
-    register_page,
-)  # , callback # If you need callbacks, import it here.
-from dash import dcc
 import dash_bootstrap_components as dbc
+from dash import dcc
 
-register_page(__name__, name="About Energy", top_nav=True, path="/about_energy")
 
-
-def layout():
-    layout = layout = dbc.Container(
-        children=[
-            dcc.Markdown(
-                """
+layout_about_energy_page = dbc.Container(
+    children=[
+        dcc.Markdown(
+            """
             
             # About Energy TODO: Source of this text Maggie?
                 
@@ -94,7 +83,6 @@ def layout():
             - Electric power
 
             """
-            ),
-        ]
-    )
-    return layout
+        ),
+    ]
+)

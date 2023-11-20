@@ -1,23 +1,11 @@
-"""
-This is a static page that will be rendered at the path "/about_dataset with information about the datasets used in this project.
-"""
-
-from dash import (
-    html,
-    register_page,
-)  # , callback # If you need callbacks, import it here.
-from dash import dcc
 import dash_bootstrap_components as dbc
+from dash import dcc
 
 
-register_page(__name__, name="About the Dataset", top_nav=True, path="/about_dataset")
-
-
-def layout():
-    layout = dbc.Container(
-        children=[
-            dcc.Markdown(
-                """
+layout_about_dataset_page = dbc.Container(
+    children=[
+        dcc.Markdown(
+            """
             # About the Datasets used in this project
             
             - [SEDS](https://www.eia.gov/state/seds/)
@@ -56,7 +44,6 @@ def layout():
             
 
         """
-            ),
-        ]
-    )
-    return layout
+        ),
+    ]
+)
