@@ -11,6 +11,77 @@ stads_df = pd.read_csv(
 )
 
 
+production_hirarchie_icicle = {
+    "parents": [
+        "",
+        "total energy production",
+        "total energy production",
+        "total energy production",
+        "total energy production",
+        "total energy production",
+        "renewable energy",
+        "renewable energy",
+        "renewable energy",
+    ],
+    "labels": [
+        "total energy production",
+        "coal",
+        "natural gas, including supplemental gaseous fuels",
+        "natural gas, excluding supplemental gaseous fuels",
+        "nuclear electric power",
+        "renewable energy",
+        "biofuels",
+        "wood and waste",
+        "other",
+    ],
+}
+
+
+consumption_hirarchie_icicle = {
+    "parents": [
+        "",
+        "total energy consumption",
+        "fossil fuels",
+        "fossil fuels",
+        "fossil fuels",
+        "total energy consumption",
+        "total energy consumption",
+        "renewable energy",
+        "renewable energy",
+        "biomass",
+        "biomass",
+        "biomass",
+        "biomass",
+        "biomass",
+        "renewable energy",
+        "renewable energy",
+        "renewable energy",
+        "total energy consumption",
+        "total energy consumption",
+    ],
+    "labels": [
+        "total energy consumption",
+        "fossil fuels",
+        "coal",
+        "natural gas, including supplemental gaseous fuels",
+        "natural gas, excluding supplemental gaseous fuels",
+        "nuclear electric power",
+        "renewable energy",
+        "hydroelectric power",
+        "biomass",
+        "wood and waste",
+        "fuel ethanol, excluding denaturant",
+        "biodiesel",
+        "renewable diesel",
+        "energy losses and co-products (biofuels only)",
+        "geothermal energy",
+        "photovoltaic and solar thermal energy",
+        "wind",
+        "interstate flow (electricity only)",
+        "net imports",
+    ],
+}
+
 # Hardcoded list of values for a ui element
 
 col_names = ["energy_type", "energy_activity"]
@@ -169,7 +240,7 @@ def create_hierarchy_list(node):
 
 # Assuming consumption is your hierarchical structure
 hierarchy_list = create_hierarchy_list(consumption[0])
-print(hierarchy_list)
+# print(hierarchy_list)
 
 
 energy_activities = [

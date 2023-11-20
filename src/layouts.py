@@ -1,6 +1,5 @@
 # Dash components, html, and dash tables
-from dash import dcc
-import feffery_antd_components as fac
+from dash import dcc, dash_table
 from dash import html
 from data import data as dt
 import plotly.express as px
@@ -71,6 +70,8 @@ def TimeSlider(start_year=1960, end_year=2021):
     )
 
 
+time_slider = TimeSlider()
+
 ### MAP STUFF ###
 
 
@@ -126,33 +127,42 @@ def MapContainer(USmapConsumption, USmapProduction):
     )
 
 
-mapContainer = MapContainer(USmapConsumption, USmapProduction)
+map_container = MapContainer(USmapConsumption, USmapProduction)
 
 
-### FILTER STUFF TODO: Replace with icicle plot ###
+### FILTER STUFF ###
 
 
-def create_icicle_plot_go_api(data):
+def create_icicle_plot_go_api(data, plot_id):
+    # Docu for icicle:
+    # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Icicle.html
+    # https://plotly.com/python/reference/icicle/
     fig = go.Figure(
         go.Icicle(
-            ids=data["ids"],
             labels=data["labels"],
             parents=data["parents"],
-            domain=dict(column=0.1, width=0.8),
-            orientation="v",
         )
     )
 
-    fig.update_layout(
-        margin=dict(t=10, b=10, r=10, l=10),
-        xaxis=dict(visible=False),
-        yaxis=dict(visible=False),
-        plot_bgcolor="rgba(0,0,0,0)",
+    fig.update_traces(
+        tiling_orientation="v", selector=dict(type="icicle")
+    )  # oterhwise it is horizontal
+    fig.update_traces(
+        root_color="#fee8c8", selector=dict(type="icicle")
+    )  # oterhwise it is white
+    # Updaate the traces so every level has a different color
+    fig.update_traces(
+        branchvalues="total",
+        selector=dict(type="icicle"),
     )
+
+    # increasing the font size of the labels
+    fig.update_traces(textfont_size=18, selector=dict(type="icicle"))
 
     return html.Div(
         [
             dcc.Graph(
+                id=plot_id,
                 figure=fig,
                 style={"width": "100%", "height": "500px"},
             )
@@ -161,83 +171,22 @@ def create_icicle_plot_go_api(data):
     )
 
 
-def flatten_hierarchy_for_plot(data, parent="", icicle_data=None):
-    if icicle_data is None:
-        icicle_data = {"ids": [], "parents": [], "labels": []}
-
-    icicle_data["ids"].append(parent)
-    icicle_data["parents"].append("")
-    icicle_data["labels"].append(data["title"])
-
-    if "children" in data:
-        for item in data["children"]:
-            flatten_hierarchy_for_plot(item, data["title"], icicle_data)
-
-    return icicle_data
-
-
-# TODO: Not working yet, need to figure out how to get the data in the right format
-def create_icicle_plot_go_api(hierarchical_data):
-    icicle_data = flatten_hierarchy_for_plot(hierarchical_data)
-    icicle_plot = create_icicle_plot_go_api(icicle_data)
-    return icicle_plot
-
-
-def create_icicle_plot(hierarchical_data):
-    def flatten_hierarchy(data, parent="", character_list=None):
-        if character_list is None:
-            character_list = []
-
-        character_list.append({"character": data["title"], "parent": parent})
-
-        if "children" in data:
-            for item in data["children"]:
-                flatten_hierarchy(item, data["title"], character_list)
-
-        return character_list
-
-    flattened_data = flatten_hierarchy(hierarchical_data[0])
-
-    data_for_icicle = {
-        "character": [item["character"] for item in flattened_data],
-        "parent": [item["parent"] for item in flattened_data],
-    }
-
-    fig = px.icicle(
-        data_for_icicle,
-        names="character",
-        parents="parent",
-    )
-    fig.update_traces(root_color="lightgrey")
-    fig.update_layout(margin=dict(t=50, l=25, r=25, b=25))
-
-    return html.Div(
-        [
-            dcc.Graph(
-                figure=fig,
-                style={"width": "100%", "height": "500px"},
-            )
-        ],
-        className="pretty_container",
-    )
-
-
-def Container(id1, id2):
+def stacked_2_item_container(id1, id2):
     return html.Div(
         [
             html.Div([id1], style={"flex": "1"}),
             html.Div([id2], style={"flex": "1"}),
         ],
-        style={"display": "flex", "flex-direction": "row", "flex": "1"},
+        style={"display": "flex", "flex-direction": "column", "flex": "1"},
         className="row",
     )
 
 
-def CategoryPicker(consumption_filters, production_filters):
-    container = Container(consumption_filters, production_filters)
+def variable_picker_with_toggle(consumption_filters, production_filters):
+    container = stacked_2_item_container(consumption_filters, production_filters)
     return html.Div(
         [
-            html.H2("Select Category"),
+            html.P("Toggle consumption icicle plot on/off:"),
             daq.BooleanSwitch(
                 id="category-toggle",
                 on=False,
@@ -250,10 +199,24 @@ def CategoryPicker(consumption_filters, production_filters):
                     "transform": "scale(0.8)",
                 },
             ),
+            html.Div(id="production-output"),
+            html.Div(id="consumption-output"),
             container,
         ]
     )
 
+
+icicle_plot_production = create_icicle_plot_go_api(
+    dt.production_hirarchie_icicle, "icicle-plot-production"
+)
+
+icicle_plot_consumption = create_icicle_plot_go_api(
+    dt.consumption_hirarchie_icicle, "icicle-plot-consumption"
+)
+
+pick_consumption_or_production = variable_picker_with_toggle(
+    icicle_plot_production, icicle_plot_consumption
+)
 
 ### Diverging bar chart ###
 
@@ -305,3 +268,84 @@ def DivergingBarChart():
 
 
 test_div_bar_chart = DivergingBarChart()
+
+
+### Debug table ###
+
+debug_data_table = html.Div(
+    dash_table.DataTable(
+        id="stads_id",
+        data=dt.stads_df.copy().to_dict("records"),
+        page_size=10,  # Number of rows per page
+        page_current=0,  # Current page
+    ),
+    className="pretty_container",
+)
+
+
+### Stacked area chart ###
+
+
+def stacked_area_chart_percentage():
+    # TODO: Change so the data is from the dataframe is used instead
+    x = ["Winter", "Spring", "Summer", "Fall"]
+    fig = go.Figure()
+    fig.update_layout(title="Distribution of energy in selected variable in percentage")
+
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=[40, 20, 30, 40],
+            mode="lines",
+            line=dict(width=0.5, color="rgb(184, 247, 212)"),
+            stackgroup="one",
+            groupnorm="percent",  # sets the normalization for the sum of the stackgroup
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=[50, 70, 40, 60],
+            mode="lines",
+            line=dict(width=0.5, color="rgb(111, 231, 219)"),
+            stackgroup="one",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=[70, 80, 60, 70],
+            mode="lines",
+            line=dict(width=0.5, color="rgb(127, 166, 238)"),
+            stackgroup="one",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=[100, 100, 100, 100],
+            mode="lines",
+            line=dict(width=0.5, color="rgb(131, 90, 241)"),
+            stackgroup="one",
+        )
+    )
+
+    fig.update_layout(
+        showlegend=True,
+        xaxis_type="category",
+        yaxis=dict(type="linear", range=[1, 100], ticksuffix="%"),
+    )
+
+    return html.Div(
+        [
+            dcc.Graph(
+                id="stacked-area-chart-percentage",
+                figure=fig,
+                style={"width": "100%", "height": "500px"},
+            )
+        ],
+        className="pretty_container",
+    )
+
+
+stacked_area_chart_percentage = stacked_area_chart_percentage()

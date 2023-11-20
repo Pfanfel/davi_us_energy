@@ -11,20 +11,15 @@ import dash_bootstrap_components as dbc
 # Navbar, layouts, custom callbacks
 from navbar import Navbar
 from layouts import (
-    TimeSlider,
-    mapContainer,
-    create_icicle_plot,
-    create_icicle_plot_go_api,
-    CategoryPicker,
+    debug_data_table,
+    time_slider,
+    map_container,
+    pick_consumption_or_production,
     test_div_bar_chart,
+    stacked_area_chart_percentage,
 )
-import callbacks
-
-from data import data as dt
 
 from pages import layout_about_energy_page, layout_about_dataset_page
-
-timeSlider = TimeSlider()
 
 # Import app
 from app import app
@@ -39,17 +34,12 @@ app_name = "/davi_us_energy"
 # Layout variables, navbar, header, content, and container
 nav = Navbar()
 
+# TODO: To we even need a header?
 header = html.Div(
     [
         html.H4(children="Same header for all pages"),
     ]
 )
-
-
-plot_production = create_icicle_plot(dt.production)
-plot_consumption = create_icicle_plot(dt.consumption)
-
-pick_consumption_or_production = CategoryPicker(plot_production, plot_consumption)
 
 content = html.Div([dcc.Location(id="url"), html.Div(id="page-content")])
 
@@ -63,9 +53,11 @@ def display_page(pathname):
     if pathname in [app_name, app_name + "/"]:
         return html.Div(
             [
-                timeSlider,
+                time_slider,
                 pick_consumption_or_production,
-                mapContainer,
+                map_container,
+                debug_data_table,
+                stacked_area_chart_percentage,
                 test_div_bar_chart,
             ],
             className="home",
