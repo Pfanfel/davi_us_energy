@@ -18,6 +18,8 @@ from data import data as dt
 import plotly.graph_objects as go
 
 from src.components.categoryPicker import CategoryPicker
+from dash.dependencies import ClientsideFunction, Output
+import geopandas as gpd
 
 # Initialize the app
 app = dash.Dash(
@@ -92,7 +94,7 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
 nav = navbar.Navbar()
 footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
-USmap = map.USmap(dt.df_states)
+USmap = map.USmapHEX()
 sunChart = sunbursChart.SunburstChart()
 stackChart = stackAreaChart.StackAreaChart()
 consumption_filters = categories_overivew.CreateCategoryFilteringTree(
@@ -368,6 +370,58 @@ app.layout = html.Div(
     ],
     style={"display": "flex", "flex-direction": "column"},
 )
+
+# Load GeoDataFrame
+url = "https://raw.githubusercontent.com/holtzy/The-Python-Graph-Gallery/master/static/data/us_states_hexgrid.geojson.json"
+geoData = gpd.read_file(url)
+geoData['centroid'] = geoData['geometry'].apply(lambda x: x.centroid)
+
+
+
+@app.callback(
+    Output('choropleth-map', 'figure'),
+    [Input('choropleth-map', 'relayoutData')]
+)
+def update_map(relayout_data):
+    # You can add logic here to update the map based on user interactions if needed
+    # For example, you can use relayout_data to get the updated layout information
+
+    # Create a Scattermapbox trace for annotations
+    annotations_trace = go.Scattermapbox(
+        lon=geoData['centroid'].apply(lambda x: x.x),
+        lat=geoData['centroid'].apply(lambda x: x.y),
+        mode='text',
+        text=geoData['iso3166_2'],
+        textposition='middle center',
+        showlegend=False,
+        textfont=dict(size=10, color='black'),
+        hoverinfo='text',
+        hovertext=geoData['google_name']
+    )
+
+    # Draw the map using plotly express
+    fig = px.choropleth_mapbox(
+        geoData,
+        geojson=geoData.geometry,
+        locations=geoData.index,
+        mapbox_style="white-bg",
+        center={"lat": 37.0902, "lon": -95.7129},
+        zoom=2.5
+    )
+
+    # Update the map layout
+    fig.update_geos(
+        fitbounds="locations",  # Adjust the bounds to fit the locations
+        visible=False,           # Hide the real map
+    )
+
+    # Add the annotations trace to the figure
+    fig.add_trace(annotations_trace)
+    # Update the layout of the entire figure
+    fig.update_layout(
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+    )
+    return fig
 
 
 # Run the app
