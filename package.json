@@ -1,0 +1,17 @@
+{
+  "name": "usa_merged",
+  "version": "1.0.0",
+  "dependencies": {
+    "highcharts": "^11.2.0",
+    "highcharts-react-official": "^3.2.1",
+    "react": "^18.2.0"
+  },
+  "description": "Practical project for the data visualization course from [Hans-Jörg Schulz](https://cs.au.dk/~hjschulz/) at Aarhus University.",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

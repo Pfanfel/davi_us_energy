@@ -61,7 +61,7 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
 
         if click_data_production:
             print("Map was clicked")
-            state_code = click_data_production["points"][0]["location"]
+            state_code = click_data_production["points"][0]["text"]
             print(f"Clicked state {state_code}")
             current_data_df = filterData([state_code], current_data_df, "StateCode")
 
@@ -71,7 +71,7 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
 
         if click_data_consumption:
             print("Map was clicked")
-            state_code = click_data_consumption["points"][0]["location"]
+            state_code = click_data_consumption["points"][0]["text"]
             print(f"Clicked state {state_code}")
             current_data_df = filterData([state_code], current_data_df, "StateCode")
 
@@ -103,8 +103,8 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
 nav = navbar.Navbar()
 footer = footer.Footer()
 timeSlider = timeSlider.TimeSlider()
-USmapConsumption = map.USmapHEX("choropleth-map-consumption", "US State map consumption")
-USmapProduction = map.USmapHEX("choropleth-map-production", "US State map production")
+USmapConsumption = map.USmapHEX("choropleth-map-consumption")
+USmapProduction = map.USmapHEX("choropleth-map-production")
 mapContainer = mapContainer.MapContainer(USmapConsumption, USmapProduction)
 sunChart = sunbursChart.SunburstChart()
 stackChart = stackAreaChart.StackAreaChart()
@@ -197,7 +197,7 @@ def update_energy_chart(
         data_to_show = filterByValues(selected_categories, data_to_show)
 
     if click_data:
-        state_code = click_data["points"][0]["location"]
+        state_code = click_data["points"][0]["text"]
         data_to_show = filterData([state_code], data_to_show, "StateCode")
 
     fig = go.Figure()
@@ -300,7 +300,7 @@ def sun_energy_chart(time_range, click_data):
     current_data_df = pd.DataFrame(dt.stads_df)
 
     if click_data:
-        state_code = click_data["points"][0]["location"]
+        state_code = click_data["points"][0]["text"]
         print(f"Location was clicked {state_code}")
         current_data_df = filterData([state_code], current_data_df, "StateCode")
 
@@ -352,7 +352,7 @@ def sun_energy_chart(time_range, click_data):
     Input("choropleth-map-consumption", "clickData"))
 def display_clicked_state(clickData):
     if clickData is not None:
-        state_code = clickData["points"][0]["hovertext"]
+        state_code = clickData["points"][0]["text"]
         return f"Clicked state code: {state_code}"
     else:
         return ""
@@ -371,7 +371,8 @@ app.layout = html.Div(
     [
         nav,
         energy_filters,
-        mapContainer,
+        USmapConsumption,
+        USmapProduction,
         timeSlider,
         data_table,
         stackChart,
@@ -389,12 +390,10 @@ geoData['centroid'] = geoData['geometry'].apply(lambda x: x.centroid)
 
 
 @app.callback(
-    Output('choropleth-map', 'figure'),
-    [Input('choropleth-map', 'relayoutData')]
+    Output('choropleth-map-consumption', 'figure'),
+    Input('choropleth-map-consumption', 'relayoutData')
 )
 def update_map(relayout_data):
-    # You can add logic here to update the map based on user interactions if needed
-    # For example, you can use relayout_data to get the updated layout information
 
     # Create a Scattermapbox trace for annotations
     annotations_trace = go.Scattermapbox(
@@ -433,6 +432,49 @@ def update_map(relayout_data):
     )
     return fig
 
+
+@app.callback(
+    Output('choropleth-map-production', 'figure'),
+    Input('choropleth-map-production', 'relayoutData')
+)
+def update_map_production(relayout_data):
+
+    # Create a Scattermapbox trace for annotations
+    annotations_trace = go.Scattermapbox(
+        lon=geoData['centroid'].apply(lambda x: x.x),
+        lat=geoData['centroid'].apply(lambda x: x.y),
+        mode='text',
+        text=geoData['iso3166_2'],
+        textposition='middle center',
+        showlegend=False,
+        textfont=dict(size=10, color='black'),
+        hoverinfo='text',
+        hovertext=geoData['google_name']
+    )
+
+    # Draw the map using plotly express
+    fig = px.choropleth_mapbox(
+        geoData,
+        geojson=geoData.geometry,
+        locations=geoData.index,
+        mapbox_style="white-bg",
+        center={"lat": 37.0902, "lon": -95.7129},
+        zoom=2.5
+    )
+
+    # Update the map layout
+    fig.update_geos(
+        fitbounds="locations",  # Adjust the bounds to fit the locations
+        visible=False,           # Hide the real map
+    )
+
+    # Add the annotations trace to the figure
+    fig.add_trace(annotations_trace)
+    # Update the layout of the entire figure
+    fig.update_layout(
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+    )
+    return fig
 
 @app.callback(
     [Output('consumption-map-container', 'style'),
