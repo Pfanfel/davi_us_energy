@@ -1,5 +1,4 @@
 # import dash-core, dash-html, dash io, bootstrap
-import os
 
 from dash import dcc
 from dash import html
@@ -9,8 +8,8 @@ from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
 # Navbar, layouts, custom callbacks
-from navbar import Navbar
-from layouts import (
+from src.components.navbar import Navbar
+from src.components.layouts import (
     debug_data_table,
     time_slider,
     map_container,
@@ -25,7 +24,6 @@ from pages import layout_about_energy_page, layout_about_dataset_page
 from app import app
 
 # Import server for deployment
-from app import srv as server
 
 
 # app_name = os.getenv("DASH_APP_PATH", "/dash-baseball-statistics")
