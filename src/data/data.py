@@ -112,7 +112,11 @@ production = [
                 "key": "renewable energy",
                 "value": "renewable energy",
                 "children": [
-                    {"title": "biofuels", "key": "biofuels", "value": "biofuels"},
+                    {
+                     "title": "biofuels",
+                     "key": "biofuels",
+                     "value": "biofuels"
+                     },
                     {
                         "title": "wood and waste",
                         "key": "wood and waste",

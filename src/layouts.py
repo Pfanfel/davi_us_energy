@@ -9,7 +9,7 @@ from components.map import USmapHEX
 from components.iciclePlotAPI import IciclePlot_API
 from components.variablePickerAndToggle import VariablePickerAndToggle
 from components.divergingBarChart import DivergingBarChart
-from components.stackedAreaChart import StackedAreaChart_Percentage
+from components.stackedAreaChart import StackedAreaChart
 
 """
 This file contains the navbar component of the app.
@@ -47,4 +47,4 @@ debug_data_table = html.Div(
     className="pretty_container",
 )
 
-stacked_area_chart_percentage = StackedAreaChart_Percentage()
+stacked_area_chart_percentage = StackedAreaChart()
