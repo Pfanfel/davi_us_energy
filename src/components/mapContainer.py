@@ -1,7 +1,7 @@
 from dash import dash_table
 import plotly.express as px
 import plotly.graph_objects as go
-from src.data import data as dt
+from data import data as dt
 import pandas as pd
 from dash import html
 

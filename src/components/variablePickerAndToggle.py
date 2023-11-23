@@ -1,6 +1,6 @@
 from dash import html
 import dash_daq as daq
-from src.components.stackedItemContainer import StackedItemContainer
+from components.stackedItemContainer import StackedItemContainer
 
 
 def VariablePickerAndToggle(consumption_filters, production_filters):
