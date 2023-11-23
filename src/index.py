@@ -2,8 +2,8 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
-from src.components.navbar import Navbar
-from src.layouts import (
+from components.navbar import Navbar
+from layouts import (
     debug_data_table,
     time_slider,
     map_container,
