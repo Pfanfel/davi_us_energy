@@ -145,8 +145,8 @@ def updateStackedEnergyChart_percentage(
 
 @app.callback(
     Output("stads_id", "data"),
-    [Input("production-filter", "value"),
-     Input("consumption-filter", "value"),
+    [Input("icicle-plot-production", "clickData"),
+     Input("icicle-plot-consumption", "clickData"),
      Input("year-slider", "value"),
      Input("choropleth-map-consumption", "clickData"),
      Input("choropleth-map-production", "clickData")],
@@ -162,7 +162,8 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
         )  # No filters selected, return the current data as is
 
     if selected_production:
-        current_data_df = filterByValues(selected_production, current_data_df)
+        select_Category = selected_production["points"][0]["label"]
+        current_data_df = filterByValues([select_Category], current_data_df)
 
         if click_data_production:
             print("Map was clicked")
@@ -170,9 +171,9 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
             print(f"Clicked state {state_code}")
             current_data_df = filterData([state_code], current_data_df, "StateCode")
 
-
     elif selected_consumption:
-        current_data_df = filterByValues(selected_consumption, current_data_df)
+        select_Category = selected_consumption["points"][0]["label"]
+        current_data_df = filterByValues([select_Category], current_data_df)
 
         if click_data_consumption:
             print("Map was clicked")
@@ -203,35 +204,35 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
 # set app callback exceptions to true
 app.config.suppress_callback_exceptions = True
 
-
-@app.callback(
-    Output("consumption-filter", "value"),
-    [Input("production-filter", "value"),
-     Input("category-toggle", "on")],
-    [State("consumption-filter", "value")]
-)
-def clear_consumption_filter(selected_production, toggle_on, current_consumption_value):
-    # If production filter is selected, clear the consumption filter
-    if not toggle_on and selected_production:
-        return []
-
-    return current_consumption_value
-
-
-@app.callback(
-    Output("production-filter", "value"),
-    [Input("consumption-filter", "value"),
-     Input("category-toggle", "on")],
-    [State("production-filter", "value")]
-)
-def clear_production_filter(selected_consumption, toggle_on, current_production_value):
-    # If consumption filter is selected, clear the production filter
-    if not toggle_on and selected_consumption:
-        return []
-
-    return current_production_value
+#
+# @app.callback(
+#     Output("consumption-filter", "value"),
+#     [Input("production-filter", "value"),
+#      Input("category-toggle", "on")],
+#     [State("consumption-filter", "value")]
+# )
+# def clear_consumption_filter(selected_production, toggle_on, current_consumption_value):
+#     # If production filter is selected, clear the consumption filter
+#     if not toggle_on and selected_production:
+#         return []
+#
+#     return current_consumption_value
 
 
+# @app.callback(
+#     Output("production-filter", "value"),
+#     [Input("consumption-filter", "value"),
+#      Input("category-toggle", "on")],
+#     [State("production-filter", "value")]
+# )
+# def clear_production_filter(selected_consumption, toggle_on, current_production_value):
+#     # If consumption filter is selected, clear the production filter
+#     if not toggle_on and selected_consumption:
+#         return []
+#
+#     return current_production_value
+#
+#
 
 
 
