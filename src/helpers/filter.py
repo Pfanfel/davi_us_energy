@@ -12,6 +12,7 @@ def find_root_node(tree, target_title):
                 return result
     return None
 
+
 def get_category_value_and_level(category_key, tree, current_level=0):
     for node in tree:
         if node["key"] == category_key:
@@ -24,27 +25,26 @@ def get_category_value_and_level(category_key, tree, current_level=0):
                 return child_value, child_level
     return None, None
 
-def find_level(tree, key_to_find, current_level=0):
+
+def find_level(tree, category, current_level=0):
     for node in tree:
-        if node['key'] == key_to_find:
+        if node["key"] == category:
             return current_level
-        elif 'children' in node:
-            level = find_level(node['children'], key_to_find, current_level + 1)
+        if "children" in node:
+            level = find_level(node["children"], category, current_level + 1)
             if level is not None:
                 return level
     return None
 
 def get_all_categories_at_same_level(category, tree):
+    target_level = find_level(tree, category)
+    if target_level is None:
+        return None, []  # Category not found
+
     categories = []
-    target_level = -1
 
     def traverse_and_collect(node, current_level):
-        nonlocal target_level
-
-        if node["key"] == category:
-            target_level = find_level(tree, node["key"])
-
-        if find_level(tree, node["key"]) == target_level:
+        if current_level == target_level:
             categories.append(node["key"])
 
         if "children" in node:
@@ -55,6 +55,9 @@ def get_all_categories_at_same_level(category, tree):
         traverse_and_collect(node, 0)
 
     return target_level, categories
+
+
+
 
 
 def get_all_children_of_category(category, tree):

@@ -43,14 +43,14 @@ def updateStackedEnergyChart_percentage(
 
     # should we take the children or on the same level?
     if clicked_icicle_plot_production:
-        selected_categories = get_all_categories_at_same_level(
+        _, selected_categories = get_all_categories_at_same_level(
             clicked_icicle_plot_production['points'][0]['label'], dt.production
         )
 
         data_to_show = filterByValues(selected_categories, data_to_show)
 
     elif clicked_icicle_plot_consumption:
-        selected_categories = get_all_categories_at_same_level(
+        _,selected_categories = get_all_categories_at_same_level(
             clicked_icicle_plot_consumption['points'][0]['label'], dt.consumption
         )
         data_to_show = filterByValues(selected_categories, data_to_show)
@@ -61,14 +61,31 @@ def updateStackedEnergyChart_percentage(
 
     fig = go.Figure()
 
-    for energy_type in data_to_show["energy_type"].unique():
-        energy_type_data = data_to_show[data_to_show["energy_type"] == energy_type]
+    # Group by year and calculate sum for each energy type
+    grouped_data = data_to_show.groupby(['Year', 'energy_type']).sum().reset_index()
+
+    # Initialize an empty DataFrame for cumulative data
+    cumulative_data = pd.DataFrame()
+
+    for energy_type in grouped_data['energy_type'].unique():
+        # Filter data for the current energy type
+        energy_data = grouped_data[grouped_data['energy_type'] == energy_type]
+
+        if cumulative_data.empty:
+            # If cumulative_data is empty, start with the first energy type
+            cumulative_data = energy_data
+        else:
+            for year in energy_data['Year'].unique():
+                cumulative_data.loc[cumulative_data['Year'] == year, 'Data'] += \
+                    energy_data.loc[energy_data['Year'] == year, 'Data'].values[0]
+
+        # Add a trace to the figure
         fig.add_trace(
             go.Scatter(
-                x=list(range(1998, 2021)),
-                y=energy_type_data["Data"],
-                fill="tonexty",
-                mode="none",
+                x=cumulative_data['Year'],
+                y=cumulative_data['Data'],
+                fill='tonexty',
+                mode='none',
                 name=energy_type,
             )
         )

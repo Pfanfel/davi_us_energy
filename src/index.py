@@ -14,6 +14,8 @@ from layouts import (
 from pages import layout_about_energy_page, layout_about_dataset_page
 from app import app
 import os
+from src.helpers.filter import get_all_categories_at_same_level
+import data.data as dt
 import callbacks
 
 # Import server for deployment
@@ -65,6 +67,8 @@ def index():
 
 # Set layout to index function
 app.layout = index()
+level, nodes = get_all_categories_at_same_level('renewable energy', dt.production)
+print(f"Level: {level}, Nodes at same level: {nodes}")
 
 # Call app server
 if __name__ == "__main__":
