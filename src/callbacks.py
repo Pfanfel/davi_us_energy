@@ -306,12 +306,8 @@ This function is used to extract the category from the clickData of the icicle p
 )
 def change_clicked_production_value(clickData):
     # TODO: Not working, fix this
-    print(clickData)
-    if clickData is not None:
-        category = clickData["points"][0]["label"]
-        return f"Clicked production category: {category}"
-    else:
-        return ""
+    print(f"clickData icicle-plot-production: {clickData}")
+    return ""
 
 
 # TODO: Store data in data folder
