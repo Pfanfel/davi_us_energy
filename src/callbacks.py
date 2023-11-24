@@ -264,11 +264,14 @@ def handle_select_event(
 )
 def update_slider_state(on):
     label = _set_label_time_slider(on)  # Calculate the label based on the toggle state
+    dt.stads_df["Year"] = pd.to_numeric(dt.stads_df["Year"])
+    # calc. the maximum and minimum year in the dataframe
+    min_year, max_year = dt.stads_df["Year"].min(), dt.stads_df["Year"].max()
     if on:
         # TODO: Clean up magic numbers and import min and max of dataframe instead.
-        return False, [1998], label  # Return label as a part of the tuple
+        return False, [min_year], label  # Return label as a part of the tuple
     else:
-        return False, [1998, 2021], label  # Return label as a part of the tuple
+        return False, [min_year, max_year], label  # Return label as a part of the tuple
 
 
 def _set_label_time_slider(on):
