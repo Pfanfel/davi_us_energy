@@ -295,17 +295,12 @@ def toggle_icicle_plot_visibility(toggle_state):
     return {"flex": "0", "display": "flex"}, {"flex": "1", "display": "flex"}
 
 
-"""
-This function is used to extract the category from the clickData of the icicle plots which has the ids icicle-plot-production and icicle-plot-consumption.
-"""
-
-
 @app.callback(
     Output(component_id="production-output", component_property="children"),
     Input("icicle-plot-production", "clickData"),
 )
 def change_clicked_production_value(clickData):
-    # TODO: Not working, fix this
+    """Only for debugging"""
     print(f"clickData icicle-plot-production: {clickData}")
     return ""
 
