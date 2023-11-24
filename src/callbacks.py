@@ -268,7 +268,6 @@ def update_slider_state(on):
     # calc. the maximum and minimum year in the dataframe
     min_year, max_year = dt.stads_df["Year"].min(), dt.stads_df["Year"].max()
     if on:
-        # TODO: Clean up magic numbers and import min and max of dataframe instead.
         return False, [min_year], label  # Return label as a part of the tuple
     else:
         return False, [min_year, max_year], label  # Return label as a part of the tuple
