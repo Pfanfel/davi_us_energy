@@ -224,9 +224,6 @@ def handle_select_event(
     return current_data_df.to_dict("records")
 
 
-# set app callback exceptions to true
-app.config.suppress_callback_exceptions = True
-
 #
 # @app.callback(
 #     Output("consumption-filter", "value"),
