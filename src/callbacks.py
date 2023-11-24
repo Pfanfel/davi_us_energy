@@ -4,7 +4,7 @@ from helpers.filter import (
     filterData,
     filterByValues,
     get_all_categories_at_same_level,
-    get_all_children_of_category
+    get_all_children_of_category,
 )
 from data import data as dt
 import plotly.graph_objects as go
@@ -26,32 +26,36 @@ def setLabel_categories_switch(on):
 
 @app.callback(
     Output("stacked-area-chart", "figure"),
-    [Input("icicle-plot-production", "clickData"),
-     Input("icicle-plot-consumption", "clickData"),
-     Input("year-slider", "value"),
-     Input("choropleth-map-consumption", "clickData")]
+    [
+        Input("icicle-plot-production", "clickData"),
+        Input("icicle-plot-consumption", "clickData"),
+        Input("year-slider", "value"),
+        Input("choropleth-map-consumption", "clickData"),
+    ],
 )
 def updateStackedEnergyChart_percentage(
-        clicked_icicle_plot_production,
-        clicked_icicle_plot_consumption,
-        time_range,
-        click_data,
+    clicked_icicle_plot_production,
+    clicked_icicle_plot_consumption,
+    time_range,
+    click_data,
 ):
     state_code = "US"
     data_to_show = pd.DataFrame(dt.stads_df)
-    selected_categories = [get_all_children_of_category('total_energy_consumption', dt.consumption)]
+    selected_categories = [
+        get_all_children_of_category("total_energy_consumption", dt.consumption)
+    ]
 
     # should we take the children or on the same level?
     if clicked_icicle_plot_production:
         _, selected_categories = get_all_categories_at_same_level(
-            clicked_icicle_plot_production['points'][0]['label'], dt.production
+            clicked_icicle_plot_production["points"][0]["label"], dt.production
         )
 
         data_to_show = filterByValues(selected_categories, data_to_show)
 
     elif clicked_icicle_plot_consumption:
-        _,selected_categories = get_all_categories_at_same_level(
-            clicked_icicle_plot_consumption['points'][0]['label'], dt.consumption
+        _, selected_categories = get_all_categories_at_same_level(
+            clicked_icicle_plot_consumption["points"][0]["label"], dt.consumption
         )
         data_to_show = filterByValues(selected_categories, data_to_show)
 
@@ -62,30 +66,31 @@ def updateStackedEnergyChart_percentage(
     fig = go.Figure()
 
     # Group by year and calculate sum for each energy type
-    grouped_data = data_to_show.groupby(['Year', 'energy_type']).sum().reset_index()
+    grouped_data = data_to_show.groupby(["Year", "energy_type"]).sum().reset_index()
 
     # Initialize an empty DataFrame for cumulative data
     cumulative_data = pd.DataFrame()
 
-    for energy_type in grouped_data['energy_type'].unique():
+    for energy_type in grouped_data["energy_type"].unique():
         # Filter data for the current energy type
-        energy_data = grouped_data[grouped_data['energy_type'] == energy_type]
+        energy_data = grouped_data[grouped_data["energy_type"] == energy_type]
 
         if cumulative_data.empty:
             # If cumulative_data is empty, start with the first energy type
             cumulative_data = energy_data
         else:
-            for year in energy_data['Year'].unique():
-                cumulative_data.loc[cumulative_data['Year'] == year, 'Data'] += \
-                    energy_data.loc[energy_data['Year'] == year, 'Data'].values[0]
+            for year in energy_data["Year"].unique():
+                cumulative_data.loc[
+                    cumulative_data["Year"] == year, "Data"
+                ] += energy_data.loc[energy_data["Year"] == year, "Data"].values[0]
 
         # Add a trace to the figure
         fig.add_trace(
             go.Scatter(
-                x=cumulative_data['Year'],
-                y=cumulative_data['Data'],
-                fill='tonexty',
-                mode='none',
+                x=cumulative_data["Year"],
+                y=cumulative_data["Data"],
+                fill="tonexty",
+                mode="none",
                 name=energy_type,
             )
         )
@@ -143,20 +148,36 @@ def updateStackedEnergyChart_percentage(
 
     return fig
 
+
 @app.callback(
     Output("stads_id", "data"),
-    [Input("icicle-plot-production", "clickData"),
-     Input("icicle-plot-consumption", "clickData"),
-     Input("year-slider", "value"),
-     Input("choropleth-map-consumption", "clickData"),
-     Input("choropleth-map-production", "clickData")],
+    [
+        Input("icicle-plot-production", "clickData"),
+        Input("icicle-plot-consumption", "clickData"),
+        Input("year-slider", "value"),
+        Input("choropleth-map-consumption", "clickData"),
+        Input("choropleth-map-production", "clickData"),
+    ],
     prevent_initial_call=True,
 )
-def handle_select_event(selected_production, selected_consumption, time_range, click_data_consumption,
-                        click_data_production):
-    current_data_df = pd.DataFrame(dt.stads_df.copy())  # Convert the data to a DataFrame
+def handle_select_event(
+    selected_production,
+    selected_consumption,
+    time_range,
+    click_data_consumption,
+    click_data_production,
+):
+    current_data_df = pd.DataFrame(
+        dt.stads_df.copy()
+    )  # Convert the data to a DataFrame
 
-    if not selected_production and not selected_consumption and not time_range and not click_data_consumption and not click_data_production:
+    if (
+        not selected_production
+        and not selected_consumption
+        and not time_range
+        and not click_data_consumption
+        and not click_data_production
+    ):
         return current_data_df.to_dict(
             "records"
         )  # No filters selected, return the current data as is
@@ -194,12 +215,14 @@ def handle_select_event(selected_production, selected_consumption, time_range, c
 
         current_data_df = current_data_df[
             (current_data_df["Year"] >= min_year)
-            & (current_data_df["Year"] <= max_year)]
+            & (current_data_df["Year"] <= max_year)
+        ]
 
     if current_data_df.empty:
         return dt.stads_df.to_dict("records")
 
     return current_data_df.to_dict("records")
+
 
 # set app callback exceptions to true
 app.config.suppress_callback_exceptions = True
@@ -235,7 +258,6 @@ app.config.suppress_callback_exceptions = True
 #
 
 
-
 @app.callback(
     [
         Output("year-slider", "disabled"),
@@ -258,20 +280,6 @@ def setLabel(on):
         return "Select Year"
     else:
         return "Select Time Interval"
-
-
-@app.callback(
-    Output("output-state-click", "children"),
-    Input("choropleth-map-consumption", "clickData"),
-)
-# TODO: Not working, fix this
-def display_clicked_state(clickData):
-    print(clickData)
-    if clickData is not None:
-        state_code = clickData["points"][0]["text"]
-        return f"Clicked state code: {state_code}"
-    else:
-        return ""
 
 
 @app.callback(
@@ -308,29 +316,30 @@ def change_clicked_production_value(clickData):
     else:
         return ""
 
-#TODO: Store data in data folder
+
+# TODO: Store data in data folder
 # Load GeoDataFrame
 url = "https://raw.githubusercontent.com/holtzy/The-Python-Graph-Gallery/master/static/data/us_states_hexgrid.geojson.json"
 geoData = gpd.read_file(url)
-geoData['centroid'] = geoData['geometry'].apply(lambda x: x.centroid)
+geoData["centroid"] = geoData["geometry"].apply(lambda x: x.centroid)
 
 
 @app.callback(
-    Output('choropleth-map-consumption', 'figure'),
-    Input('choropleth-map-consumption', 'clickData')
+    Output("choropleth-map-consumption", "figure"),
+    Input("choropleth-map-consumption", "clickData"),
 )
 def update_map(clickData):
     # Create a Scattermapbox trace for annotations
     annotations_trace = go.Scattermapbox(
-        lon=geoData['centroid'].apply(lambda x: x.x),
-        lat=geoData['centroid'].apply(lambda x: x.y),
-        mode='text',
-        text=geoData['iso3166_2'],
-        textposition='middle center',
+        lon=geoData["centroid"].apply(lambda x: x.x),
+        lat=geoData["centroid"].apply(lambda x: x.y),
+        mode="text",
+        text=geoData["iso3166_2"],
+        textposition="middle center",
         showlegend=False,
-        textfont=dict(size=10, color='black'),
-        hoverinfo='text',
-        hovertext=geoData['google_name']
+        textfont=dict(size=10, color="black"),
+        hoverinfo="text",
+        hovertext=geoData["google_name"],
     )
 
     # Draw the map using plotly express
@@ -340,7 +349,7 @@ def update_map(clickData):
         locations=geoData.index,
         mapbox_style="white-bg",
         center={"lat": 37.0902, "lon": -95.7129},
-        zoom=2.5
+        zoom=2.5,
     )
 
     # Update the map layout
@@ -353,17 +362,19 @@ def update_map(clickData):
     fig.add_trace(annotations_trace)
 
     # Highlight the selected hexagon
-    if clickData and 'points' in clickData:
-        selected_state = clickData['points'][0]['text']
+    if clickData and "points" in clickData:
+        selected_state = clickData["points"][0]["text"]
         print("Selected State:", selected_state)
 
         # Update the opacity for the selected hexagon
         fig.update_traces(
             marker=dict(
-                opacity=[1.0 if state_code == selected_state else 0.3 for state_code in geoData['iso3166_2']],
+                opacity=[
+                    1.0 if state_code == selected_state else 0.3
+                    for state_code in geoData["iso3166_2"]
+                ],
             ),
         )
-
 
     # Update the layout of the entire figure
     fig.update_layout(
@@ -373,21 +384,21 @@ def update_map(clickData):
 
 
 @app.callback(
-    Output('choropleth-map-production', 'figure'),
-    Input('choropleth-map-production', 'clickData')
+    Output("choropleth-map-production", "figure"),
+    Input("choropleth-map-production", "clickData"),
 )
 def update_map_production(clickData):
     # Create a Scattermapbox trace for annotations
     annotations_trace = go.Scattermapbox(
-        lon=geoData['centroid'].apply(lambda x: x.x),
-        lat=geoData['centroid'].apply(lambda x: x.y),
-        mode='text',
-        text=geoData['iso3166_2'],
-        textposition='middle center',
+        lon=geoData["centroid"].apply(lambda x: x.x),
+        lat=geoData["centroid"].apply(lambda x: x.y),
+        mode="text",
+        text=geoData["iso3166_2"],
+        textposition="middle center",
         showlegend=False,
-        textfont=dict(size=10, color='black'),
-        hoverinfo='text',
-        hovertext=geoData['google_name']
+        textfont=dict(size=10, color="black"),
+        hoverinfo="text",
+        hovertext=geoData["google_name"],
     )
 
     # Draw the map using plotly express
@@ -397,7 +408,7 @@ def update_map_production(clickData):
         locations=geoData.index,
         mapbox_style="white-bg",
         center={"lat": 37.0902, "lon": -95.7129},
-        zoom=2.5
+        zoom=2.5,
     )
 
     # Update the map layout
@@ -414,23 +425,29 @@ def update_map_production(clickData):
     )
 
     # Highlight the selected hexagon
-    if clickData and 'points' in clickData:
-        selected_state = clickData['points'][0]['text']
+    if clickData and "points" in clickData:
+        selected_state = clickData["points"][0]["text"]
         print("Selected State:", selected_state)
 
         # Update the opacity for the selected hexagon
         fig.update_traces(
             marker=dict(
-                opacity=[1.0 if state_code == selected_state else 0.3 for state_code in geoData['iso3166_2']],
+                opacity=[
+                    1.0 if state_code == selected_state else 0.3
+                    for state_code in geoData["iso3166_2"]
+                ],
             ),
         )
 
     return fig
 
+
 @app.callback(
-    [Output('consumption-map-container', 'style'),
-     Output('conditional-map-container', 'style')],
-    Input('category-toggle', 'on')
+    [
+        Output("consumption-map-container", "style"),
+        Output("conditional-map-container", "style"),
+    ],
+    Input("category-toggle", "on"),
 )
 def toggle_consumption_map_visibility(toggle_state):
     if not toggle_state:
@@ -439,21 +456,7 @@ def toggle_consumption_map_visibility(toggle_state):
     return {"flex": "0", "display": "flex"}, {"flex": "1", "display": "flex"}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#SUNBURST?
+# SUNBURST?
 """
 @app.callback(
     Output("sun-chart", "figure"),
