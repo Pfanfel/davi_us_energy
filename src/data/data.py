@@ -5,10 +5,15 @@ This file is used to load data from the data folder and perform any data manipul
 # Import Pandas
 import pandas as pd
 
+import geopandas as gpd
+
 stads_df = pd.read_csv(
     # import stads_data_parsed_cleaned_pop_gdp_v1.csv from the same folder
     "data/stads_data_parsed_cleaned_pop_gdp_v1.csv",
 )
+
+# Load the data and transform the data with the centroid function
+geo_data_us_states_hexgrid = gpd.read_file("data/us_states_hexgrid.geojson.json")
 
 
 production_hirarchie_icicle = {
@@ -112,11 +117,7 @@ production = [
                 "key": "renewable energy",
                 "value": "renewable energy",
                 "children": [
-                    {
-                     "title": "biofuels",
-                     "key": "biofuels",
-                     "value": "biofuels"
-                     },
+                    {"title": "biofuels", "key": "biofuels", "value": "biofuels"},
                     {
                         "title": "wood and waste",
                         "key": "wood and waste",
@@ -526,7 +527,7 @@ state_coordinates = {
     "VT": (19, 8),
     "NH": (21, 8),
     "AK": (0, 9),
-    "ME": (22, 9)
+    "ME": (22, 9),
 }
 
 

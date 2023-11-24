@@ -9,7 +9,6 @@ from helpers.filter import (
 from data import data as dt
 import plotly.graph_objects as go
 from dash.dependencies import Output, Input, State
-import geopandas as gpd
 from app import app
 
 
@@ -305,11 +304,7 @@ def change_clicked_production_value(clickData):
     return ""
 
 
-# TODO: Store data in data folder
-# Load GeoDataFrame
-url = "https://raw.githubusercontent.com/holtzy/The-Python-Graph-Gallery/master/static/data/us_states_hexgrid.geojson.json"
-geoData = gpd.read_file(url)
-geoData["centroid"] = geoData["geometry"].apply(lambda x: x.centroid)
+dt.geo_data_us_states_hexgrid
 
 
 @app.callback(
@@ -317,6 +312,8 @@ geoData["centroid"] = geoData["geometry"].apply(lambda x: x.centroid)
     Input("choropleth-map-consumption", "clickData"),
 )
 def update_map(clickData):
+    geoData = dt.geo_data_us_states_hexgrid
+    geoData["centroid"] = geoData["geometry"].apply(lambda x: x.centroid)
     # Create a Scattermapbox trace for annotations
     annotations_trace = go.Scattermapbox(
         lon=geoData["centroid"].apply(lambda x: x.x),
@@ -376,6 +373,8 @@ def update_map(clickData):
     Input("choropleth-map-production", "clickData"),
 )
 def update_map_production(clickData):
+    geoData = dt.geo_data_us_states_hexgrid
+    geoData["centroid"] = geoData["geometry"].apply(lambda x: x.centroid)
     # Create a Scattermapbox trace for annotations
     annotations_trace = go.Scattermapbox(
         lon=geoData["centroid"].apply(lambda x: x.x),
