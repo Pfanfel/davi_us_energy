@@ -14,7 +14,7 @@ from layouts import (
 from pages import layout_about_energy_page, layout_about_dataset_page
 from app import app
 import os
-from src.helpers.filter import get_all_categories_at_same_level
+from helpers.filter import get_all_categories_at_same_level
 import data.data as dt
 import callbacks
 
@@ -36,8 +36,7 @@ container = dbc.Container([header, content])
 
 # Menu callback, set and return
 # Declare function  that connects other pages with content to container
-@app.callback(Output("page-content", "children"),
-              Input("url", "pathname"))
+@app.callback(Output("page-content", "children"), Input("url", "pathname"))
 def display_page(pathname):
     if pathname in [app_name, app_name + "/"]:
         return html.Div(
@@ -67,7 +66,7 @@ def index():
 
 # Set layout to index function
 app.layout = index()
-level, nodes = get_all_categories_at_same_level('renewable energy', dt.production)
+level, nodes = get_all_categories_at_same_level("renewable energy", dt.production)
 print(f"Level: {level}, Nodes at same level: {nodes}")
 
 # Call app server
