@@ -263,7 +263,7 @@ def handle_select_event(
     Input("year-toggle", "on"),
 )
 def update_slider_state(on):
-    label = setLabel(on)  # Calculate the label based on the toggle state
+    label = _set_label_time_slider(on)  # Calculate the label based on the toggle state
     if on:
         # TODO: Clean up magic numbers and import min and max of dataframe instead.
         return False, [1998], label  # Return label as a part of the tuple
@@ -271,7 +271,7 @@ def update_slider_state(on):
         return False, [1998, 2021], label  # Return label as a part of the tuple
 
 
-def setLabel(on):
+def _set_label_time_slider(on):
     if on:
         return "Select Year"
     else:
