@@ -2,17 +2,45 @@ import dash_bootstrap_components as dbc
 from dash import dcc
 
 
+
+custom_styles = {
+    'container': {
+        'fontSize': '14px',
+        'lineHeight': '1.8',
+        'color': '#333',
+        'backgroundColor': '#f8f8f8',
+        'margin': '20px',
+        'padding': '20px',
+        'text-align': 'justify',
+        'border': '1px solid #ddd',
+        'borderRadius': '8px',
+        'boxShadow': '0 4px 8px rgba(0, 0, 0, 0.1)',
+    },
+    'heading': {
+        'fontFamily': 'Helvetica',
+        'fontSize': '20px',  # Adjust the heading size
+        'fontWeight': 'bold',
+        'color': '#555',     # Darker color for headings
+        'marginBottom': '10px',
+    },
+}
+
+
+
+
 layout_about_energy_page = dbc.Container(
     children=[
         dcc.Markdown(
             """
             
-            # About Energy TODO: Source of this text Maggie?
+
                 
-            ## What is energy?
+            ### Understanding Energy
                 
-            Scientists define energy as the ability to do work. Modern civilization is possible because people have
-            learned how to change energy from one form to another and then use it to do work.
+            In its most common definition, energy is the ability to do work. In other words, everything that can do work has energy. 
+            In the case of energy, doing work is also known as causing or making change. 
+            Energy is either transformed or transferred every time work is being done. This means that since it changes forms every time it’s used, 
+            the amount of energy in the universe will forever remain the same. 
             There are many different sources of energy, but they can all be divided into two categories:
             
             
@@ -81,8 +109,12 @@ layout_about_energy_page = dbc.Container(
             - Industrial
             - Transportation
             - Electric power
+            
+            For a comprehensive understanding of various energy types and their applications, please refer to the following source page:
+            [The source page](https://www.eia.gov/energyexplained/)
 
-            """
+            """,
+            style=custom_styles['container']
         ),
     ]
 )
