@@ -1,6 +1,7 @@
 from dash import html, dcc
 import plotly.graph_objects as go
 import pandas as pd
+from data import data as dt
 
 
 d = {
@@ -9,6 +10,38 @@ d = {
     "Female": [1000, 2500, 4000, 4800, 2000, 1000],
 }
 df = pd.DataFrame(d)
+
+test_year = 2000
+
+test_type = "production"
+
+test_variable = "biofuels"
+
+test_variable_code = "BFPRB"
+
+test_state = "Arizona"
+test_state_code = "AZ"
+
+test_date_range = [test_year, test_year]
+
+# calc_avg = dt.calculate_avg_value(
+#     dt.stads_df, test_state_code, test_date_range, test_variable_code
+# )
+
+# print(f"the calc_avg: {calc_avg}")
+
+# Get the selected variables
+
+# Get the selected date or date range
+
+# Based on the selected variables and date, filter the data
+
+# Aggregate the data over the whole US by state, date/date range, and variable to get a avrage value
+
+# Based on that avrage value, create a diverging bar chart in percent.
+
+# Show the raw values (computed avrage and value) on hover
+
 
 def DivergingBarChart():
     fig = go.Figure()

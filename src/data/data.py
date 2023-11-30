@@ -7,6 +7,8 @@ import pandas as pd
 
 import geopandas as gpd
 
+from helpers import filter as flt
+
 stads_df = pd.read_csv(
     # import stads_data_parsed_cleaned_pop_gdp_v1.csv from the same folder
     "data/stads_data_parsed_cleaned_pop_gdp_v1.csv",
@@ -531,8 +533,64 @@ state_coordinates = {
 }
 
 
+def calculate_avg_value(df, state_code, date_range, variable):
+    """Calculate the average value of a variable for a given state and date range.
+
+    Args:
+        df (pandas.DataFrame): The data frame containing the data.
+        state_code (str): The state code for which the average value should be calculated.
+        date_range (list): The date range for which the average value should be calculated.
+        variable (str): The variable for which the average value should be calculated.
+
+    Returns:
+        float: The average value of the variable for the given state and date range.
+    """
+
+    print(f"state_code: {state_code}, date_range: {date_range}, variable: {variable}")
+    # Filter the data frame by state code, date range and variable
+
+    # Filtering not properly working
+    filtered_data = flt.filterByValues(state_code)
+    print(f"filtered_data: {filtered_data}")
+    # df_filtered = df[
+    #     (df["state_code"] == state_code)
+    #     & (df["date"].isin(date_range))
+    #     & (df["variable"] == variable)
+    # ]
+    # Calculate the average value
+    avg_value = filtered_data["value"].mean()
+    # Return the average value
+    return avg_value
+
+
+def calculate_percantage_deviation_from_avg(df, state_code, date_range, variable):
+    """Calculate the percentage deviation of a variable for a given state and date range from the average value.
+
+    Args:
+        df (pandas.DataFrame): The data frame containing the data.
+        state_code (str): The state code for which the percentage deviation should be calculated.
+        date_range (list): The date range for which the percentage deviation should be calculated.
+        variable (str): The variable for which the percentage deviation should be calculated.
+
+    Returns:
+        float: The percentage deviation of the variable for the given state and date range from the average value.
+    """
+    # Calculate the average value
+    avg_value = calculate_avg_value(df, state_code, date_range, variable)
+    # Filter the data frame by state code, date range and variable
+    df_filtered = df[
+        (df["state_code"] == state_code)
+        & (df["date"].isin(date_range))
+        & (df["variable"] == variable)
+    ]
+    # Calculate the percentage deviation
+    percentage_deviation = (df_filtered["value"].mean() - avg_value) / avg_value * 100
+    # Return the percentage deviation
+    return percentage_deviation
+
+
 state_codes = list(states_dict.keys())
-print(state_codes)
+# print(state_codes)
 # Create a DataFrame from the dictionary
 df_states = pd.DataFrame(
     list(states_dict.items()), columns=["StateCode", "full_state_name"]

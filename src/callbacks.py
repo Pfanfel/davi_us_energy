@@ -302,7 +302,7 @@ def toggle_icicle_plot_visibility(toggle_state):
 )
 def change_clicked_production_value(clickData):
     """Only for debugging"""
-    print(f"clickData icicle-plot-production: {clickData}")
+    # print(f"clickData icicle-plot-production: {clickData}")
     return ""
 
 
@@ -443,6 +443,70 @@ def toggle_consumption_map_visibility(toggle_state):
         return {"flex": "0", "display": "flex"}, {"flex": "1", "display": "none"}
 
     return {"flex": "0", "display": "flex"}, {"flex": "1", "display": "flex"}
+
+
+@app.callback(
+    Output("diverging-bar-chart", "figure"),
+    [
+        Input("icicle-plot-production", "clickData"),
+        Input("icicle-plot-consumption", "clickData"),
+        Input("year-slider", "value"),
+        Input("choropleth-map-consumption", "clickData"),
+        Input("choropleth-map-production", "clickData"),
+    ],
+)
+def update_diverging_bar_chart(
+    selected_production,
+    selected_consumption,
+    time_range,
+    click_data_consumption,
+    click_data_production,
+):
+    current_data_df = pd.DataFrame(
+        dt.stads_df.copy()
+    )  # Convert the data to a DataFrame
+
+    # Filter the data based on the selected production category
+
+    if selected_production:
+        select_Category = selected_production["points"][0]["label"]
+        current_data_df = filterByValues([select_Category], current_data_df)
+
+    # TODO: IS A COPY, FROM ABOVE NEEDS TO BE REFACTORED
+    # Handle when the checkbox is selected, and the range is empty, but a single year is selected
+
+    # Filter the data on the year range
+
+    if len(time_range) == 1:
+        single_year = time_range[0]
+        single_year = int(single_year)
+        current_data_df = current_data_df[current_data_df["Year"] == single_year]
+
+    if time_range and len(time_range) == 2:
+        min_year, max_year = time_range
+        min_year = int(min_year)
+        max_year = int(max_year)
+
+        current_data_df = current_data_df[
+            (current_data_df["Year"] >= min_year)
+            & (current_data_df["Year"] <= max_year)
+        ]
+
+    # Filter the data on the clicked state
+
+    if click_data_consumption:
+        state_code = click_data_consumption["points"][0]["text"]
+        print(f"Clicked state diverging bar plot {state_code}")
+        current_data_df = filterData([state_code], current_data_df, "StateCode")
+
+    # print(f"current_data_df: {current_data_df}")
+
+    calc_avg = dt.calculate_avg_value(
+        dt.stads_df, state_code, time_range, select_Category
+    )
+    print(f"the calc_avg: {calc_avg}")
+
+    return ""
 
 
 # SUNBURST?
