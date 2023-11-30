@@ -47,6 +47,8 @@ def display_page(pathname):
                 debug_data_table,
                 stacked_area_chart_percentage,
                 test_div_bar_chart,
+                dcc.Store(id='overview_data_storage', data=dt.stads_id),
+                dcc.Store(id='detailed_data_storage', data=dt.stads_id)
             ],
             className="home",
         )

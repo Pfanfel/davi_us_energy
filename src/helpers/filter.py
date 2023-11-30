@@ -80,6 +80,13 @@ def get_all_children_of_category(category, tree):
     return children
 
 
+
+
+"""
+fitleredByYears = filterData([2000,2001], data_taken_from_storage, 'Year')
+filteredByStates = filterData(['AK', 'TX'], fitleredByYears, 'StateCode' )
+...
+"""
 def filterData(chosen_categories, data, category_to_filter):
     filter_condition = data[category_to_filter].isin(chosen_categories)
     filtered_data = data[filter_condition]
@@ -143,3 +150,6 @@ def filter_dataframe_by_tree(df, tree, parent_condition=None, level=0):
                 condition &= filter_dataframe_by_tree(df, node["children"], condition, level + 1)
 
     return df[condition]
+
+
+ 
