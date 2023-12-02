@@ -33,6 +33,11 @@ header = html.Div(
 content = html.Div([dcc.Location(id="url"), html.Div(id="page-content")])
 container = dbc.Container([header, content])
 
+storage_consumption_overview = dcc.Store(id='consumption_overview_data_storage', data=dt.stads_df.to_dict('records'))
+storage_consumption_detailed = dcc.Store(id='consumption_detailed_data_storage')
+
+storage_production_overview = dcc.Store(id='production_overview_data_storage')
+storage_production_detailed = dcc.Store(id='production_detailed_data_storage')
 
 # Menu callback, set and return
 # Declare function  that connects other pages with content to container
@@ -47,8 +52,8 @@ def display_page(pathname):
                 debug_data_table,
                 stacked_area_chart_percentage,
                 test_div_bar_chart,
-                dcc.Store(id='overview_data_storage', data=dt.stads_id),
-                dcc.Store(id='detailed_data_storage', data=dt.stads_id)
+                dcc.Store(id='consumption_overview_data_storage', data=dt.stads_df.to_dict('records')),
+                dcc.Store(id='consumption_detailed_data_storage')
             ],
             className="home",
         )
