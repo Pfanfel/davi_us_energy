@@ -52,8 +52,10 @@ def display_page(pathname):
                 debug_data_table,
                 stacked_area_chart_percentage,
                 test_div_bar_chart,
-                dcc.Store(id='consumption_overview_data_storage', data=dt.stads_df.to_dict('records')),
-                dcc.Store(id='consumption_detailed_data_storage')
+                storage_consumption_overview,
+                storage_consumption_detailed,
+                storage_production_overview,
+                storage_production_detailed
             ],
             className="home",
         )
