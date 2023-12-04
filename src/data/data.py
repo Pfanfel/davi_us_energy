@@ -330,6 +330,19 @@ energy_activities = [
 ]
 
 
+def get_allCategories_for(node, allNodes):
+    allNodes.append(node['key'])
+
+    if "children" in node:
+        for child in node["children"]:
+            get_allCategories_for(child, allNodes)
+
+    return allNodes
+
+
+all_consumption = get_allCategories_for(consumption[0] , [])
+all_production = get_allCategories_for(production[0] , [])
+
 energy_categories_types = [
     {
         "title": "energy types",
@@ -546,12 +559,10 @@ def calculate_avg_value(df, state_code, date_range, variable):
         float: The average value of the variable for the given state and date range.
     """
 
-    print(f"state_code: {state_code}, date_range: {date_range}, variable: {variable}")
     # Filter the data frame by state code, date range and variable
 
     # Filtering not properly working
     filtered_data = flt.filterByValues(state_code)
-    print(f"filtered_data: {filtered_data}")
     # df_filtered = df[
     #     (df["state_code"] == state_code)
     #     & (df["date"].isin(date_range))
@@ -590,7 +601,6 @@ def calculate_percantage_deviation_from_avg(df, state_code, date_range, variable
 
 
 state_codes = list(states_dict.keys())
-# print(state_codes)
 # Create a DataFrame from the dictionary
 df_states = pd.DataFrame(
     list(states_dict.items()), columns=["StateCode", "full_state_name"]

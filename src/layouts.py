@@ -1,4 +1,4 @@
-from dash import dash_table
+from dash import dash_table, dcc
 import plotly.graph_objects as go
 from data import data as dt
 import pandas as pd
@@ -20,20 +20,18 @@ time_slider = TimeSlider()
 USmapConsumption = USmapHEX("choropleth-map-consumption")
 USmapProduction = USmapHEX("choropleth-map-production")
 map_container = MapContainer(USmapConsumption, USmapProduction)
+# PLOTS
+icicle_plot_production = IciclePlot_API(dt.production_hirarchie_icicle, "icicle-plot-production")
+icicle_plot_consumption = IciclePlot_API(dt.consumption_hirarchie_icicle, "icicle-plot-consumption")
 
-icicle_plot_production = IciclePlot_API(
-    dt.production_hirarchie_icicle, "icicle-plot-production"
-)
+div_bar_chart = DivergingBarChart('diverging-bar-chart')
 
-icicle_plot_consumption = IciclePlot_API(
-    dt.consumption_hirarchie_icicle, "icicle-plot-consumption"
-)
 
-pick_consumption_or_production = VariablePickerAndToggle(
-    icicle_plot_production, icicle_plot_consumption
-)
+stacked_area_chart_percentage_consumption = StackedAreaChart('stacked-area-chart-consumption')
+stacked_area_chart_percentage_production = StackedAreaChart('stacked-area-chart-production')
 
-test_div_bar_chart = DivergingBarChart()
+
+pick_consumption_or_production = VariablePickerAndToggle(icicle_plot_production, icicle_plot_consumption)
 
 ### Debug table ###
 
@@ -47,4 +45,17 @@ debug_data_table = html.Div(
     className="pretty_container",
 )
 
-stacked_area_chart_percentage = StackedAreaChart()
+#STORAGE
+storage_consumption_overview = dcc.Store(id='consumption_overview_data_storage', data=dt.stads_df.to_dict('records'))
+storage_consumption_detailed = dcc.Store(id='consumption_detailed_data_storage')
+
+storage_production_overview = dcc.Store(id='production_overview_data_storage')
+storage_production_detailed = dcc.Store(id='production_detailed_data_storage')
+
+selected_category_overview_con = dcc.Store(id='selected_category_overview_con')
+selected_years_overview_con = dcc.Store(id='selected_years_con')
+selected_states_con = dcc.Store(id='selected_states_con')
+
+selected_category_overview_pro = dcc.Store(id='selected_category_overview_pro')
+selected_years_overview_pro = dcc.Store(id='selected_years_pro')
+selected_states_pro = dcc.Store(id='selected_states_pro')

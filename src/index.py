@@ -8,8 +8,16 @@ from layouts import (
     time_slider,
     map_container,
     pick_consumption_or_production,
-    test_div_bar_chart,
-    stacked_area_chart_percentage,
+    div_bar_chart,
+    stacked_area_chart_percentage_consumption,
+    stacked_area_chart_percentage_production, storage_consumption_overview, storage_consumption_detailed,
+    storage_production_detailed, storage_production_overview,
+    selected_category_overview_con,
+    selected_years_overview_con,
+    selected_states_con,
+    selected_category_overview_pro,
+    selected_years_overview_pro,
+    selected_states_pro,
 )
 from pages import layout_about_energy_page, layout_about_dataset_page
 from app import app
@@ -33,11 +41,7 @@ header = html.Div(
 content = html.Div([dcc.Location(id="url"), html.Div(id="page-content")])
 container = dbc.Container([header, content])
 
-storage_consumption_overview = dcc.Store(id='consumption_overview_data_storage', data=dt.stads_df.to_dict('records'))
-storage_consumption_detailed = dcc.Store(id='consumption_detailed_data_storage')
 
-storage_production_overview = dcc.Store(id='production_overview_data_storage')
-storage_production_detailed = dcc.Store(id='production_detailed_data_storage')
 
 # Menu callback, set and return
 # Declare function  that connects other pages with content to container
@@ -50,12 +54,20 @@ def display_page(pathname):
                 pick_consumption_or_production,
                 map_container,
                 debug_data_table,
-                stacked_area_chart_percentage,
-                test_div_bar_chart,
+                stacked_area_chart_percentage_consumption,
+                stacked_area_chart_percentage_production,
+                div_bar_chart,
                 storage_consumption_overview,
                 storage_consumption_detailed,
                 storage_production_overview,
-                storage_production_detailed
+                storage_production_detailed,
+                selected_category_overview_con,
+                selected_years_overview_con,
+                selected_states_con,
+                selected_category_overview_pro,
+                selected_years_overview_pro,
+                selected_states_pro,
+
             ],
             className="home",
         )
