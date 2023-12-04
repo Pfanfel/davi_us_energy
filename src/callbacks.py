@@ -5,12 +5,16 @@ from helpers.filter import (
     filterData,
     filterByValues,
     get_all_categories_at_same_level,
+    get_MSN_code_from_title,
     get_all_children_of_category,
 )
 from data import data as dt
 import plotly.graph_objects as go
 from dash.dependencies import Output, Input, State
 from app import app
+
+
+
 
 
 # TODO: FOR KIDS CATEGORIES OR WHAT
@@ -61,10 +65,10 @@ def update_diverging_bar_chart(data_production, data_consumption, selected_categ
 
 
 @app.callback(
-    Output("diverging-bar-chart", "figure"),
+    Output("diverging-bar-chart-consumption", "figure"),
     [Input("production_detailed_data_storage", "data"),
      Input("consumption_detailed_data_storage", "data"),
-     State("selected_category_overview_prod", "data"),
+     State("selected_category_overview_pro", "data"),
      State("selected_category_overview_con", "data")
      ],
     prevent_initial_call=True
@@ -73,94 +77,117 @@ def update_diverging_bar_chart_prod_cons(filtered_data_prod, filtered_data_cons,
     return update_diverging_bar_chart(filtered_data_prod, filtered_data_cons, selected_category[0])
 
 
-# @app.callback(
-#     Output("diverging-bar-chart_production", "figure"),
-#     [Input("production_detailed_data_storage", "data"),
-#      State("selected_category_overview", "data")]
-# )
-# def update_diverging_bar_chart_production(filtered_data, selected_category):
-#     return update_diverging_bar_chart(filtered_data, selected_category[0])
+@app.callback(
+    Output("diverging-bar-chart_production", "figure"),
+    [Input("production_detailed_data_storage", "data"),
+     State("selected_category_overview", "data")]
+)
+def update_diverging_bar_chart_production(filtered_data, selected_category):
+    return update_diverging_bar_chart(filtered_data, selected_category[0])
 
 # DETAILED PLOT -> FIXED
 @app.callback(
     Output("stacked-area-chart-consumption", "figure"),
-    Input("consumption_detailed_data_storage", "data"),
-    State("selected_category_overview_con", "data"),
+    [
+        Input("selected_category_overview_con", "data"),
+        Input("selected_years_con", "data"),
+        Input("selected_states_con", "data"),
+    ],
     prevent_initial_call=True
 )
-def updateStackedEnergyChart_percentage_consumption(filtered_data, selected_category):
-    return updateStackedEnergyChart_percentage(filtered_data, selected_category, dt.consumption)
+def updateStackedEnergyChart_percentage_consumption(selected_cat, selected_years, selected_state):
+    return updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state, True)
 
 
 @app.callback(
+
     Output("stacked-area-chart-production", "figure"),
-    Input("production_detailed_data_storage", "data"),
-    State('selected_category_overview_pro', 'data'),
+    [
+        Input("selected_category_overview_pro", "data"),
+        Input("selected_years_pro", "data"),
+        Input("selected_states_pro", "data"),
+    ],
     prevent_initial_call=True
 )
-def updateStackedEnergyChart_percentage_production(filtered_data, selected_category):
-    return updateStackedEnergyChart_percentage(filtered_data, selected_category, dt.production)
+def updateStackedEnergyChart_percentage_production(selected_cat, selected_years, selected_state):
+    return updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state, False)
 
 
-def updateStackedEnergyChart_percentage(filtered_data, selected_category, tree):
+
+
+#TODO: fix CATEGORIES FILTERING --> DOES NOT WORK CORRECTLY
+#orint when it is called and if it is called on category change!!!
+#then see what categories are selected for that bar chart if it correctly takes children
+def updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state, is_consumption):
     print('updateStackedEnergyChart_percentage method called')
-    data_to_show = pd.DataFrame(filtered_data)
-    state_code = data_to_show["StateCode"].unique()
-    print(f'State codes:  {state_code}')
-    years = data_to_show["Year"].unique()
-    print(f'Years:  {years}')
-    categories_energy_type = data_to_show["energy_type"].unique()
-    print(f'categories_energy_type in data {categories_energy_type}')
-    categories_energy_activity = data_to_show["energy_activity"].unique()
-    print(f'categories_energy_activity in data {categories_energy_activity}')
+    label_addition = 'Consumption' if is_consumption else 'Production'
+    current_data_df = pd.DataFrame(dt.stads_df)
+    tree = dt.consumption if is_consumption else dt.production
+    years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
 
+
+    children_of_cat = None
+    if selected_cat is not None and selected_cat != []:
+        print(f'selected_cat is not none: {selected_cat}')
+        children_of_cat = get_all_children_of_category(selected_cat[0], tree)
+        print(f'Children of selected cat: {children_of_cat}')
+    if children_of_cat != [] and children_of_cat is not None:
+        select_Categories = children_of_cat
+    elif children_of_cat is None or children_of_cat == []:
+        select_Categories = selected_cat
+
+    state_code = selected_state if not None else states_def
+    print(f'updateStackedEnergyChart_percentage: Selected categories : {select_Categories}')
+    #filterind data frame without filtering by years
+    current_data_df = filterByValues(select_Categories, current_data_df)
+    current_data_df = filterData([state_code], current_data_df, "StateCode")
+
+    print(f'State codes:  {state_code}')
     fig = go.Figure()
 
-    selected_categories = [get_all_children_of_category(selected_category, tree)]
     # Group by year and calculate sum for each energy type
-    grouped_data = data_to_show.groupby(["Year", selected_categories]).sum().reset_index()
+    grouped_data = current_data_df.groupby(["Year", "MSN"]).sum().reset_index()
 
     # Initialize an empty DataFrame for cumulative data
-    cumulative_data = pd.DataFrame()
+    cumulative_sum = pd.DataFrame()
 
-    for category in selected_categories:
+    for energy_type in grouped_data["MSN"].unique():
         # Filter data for the current energy type
-        energy_data = grouped_data[grouped_data["energy_type"] == category]
+        energy_data = grouped_data[grouped_data["MSN"] == energy_type]
 
-        if cumulative_data.empty:
-            # If cumulative_data is empty, start with the first energy type
-            cumulative_data = energy_data
+        if cumulative_sum.empty:
+            # If cumulative_sum is empty, start with the first energy type
+            cumulative_sum = energy_data
         else:
-            for year in energy_data["Year"].unique():
-                cumulative_data.loc[
-                    cumulative_data["Year"] == year, "Data"
-                ] += energy_data.loc[energy_data["Year"] == year, "Data"].values[0]
+            # Merge the energy data with cumulative sum and update the 'Data' column
+            cumulative_sum = cumulative_sum.merge(energy_data, on='Year', how='left', suffixes=('', '_new'))
+            cumulative_sum['Data'] += cumulative_sum['Data_new'].fillna(0)
+            cumulative_sum.drop(columns='Data_new', inplace=True)
 
-        # Add a trace to the figure
+        # Add a trace to the figure for the current cumulative sum
         fig.add_trace(
             go.Scatter(
-                x=cumulative_data["Year"],
-                y=cumulative_data["Data"],
+                x=cumulative_sum["Year"],
+                y=cumulative_sum["Data"],
                 fill="tonexty",
                 mode="none",
-                name=category,
+                name=energy_type,
             )
         )
 
     fig.update_layout(
         xaxis_title="Year",
         yaxis_title="Data",
-        title=f"Energy Data Over Time in {state_code}",
+        title=f"{label_addition} Energy Data Over Time in Whole {dt.get_state_name(state_code)}",
     )
 
-    unique_years = data_to_show["Year"].unique()
-    if len(unique_years) == 1:
+    if len(selected_years) == 1:
         fig.update_layout(
             shapes=[
                 dict(
                     type="line",
-                    x0=unique_years[0],
-                    x1=unique_years[0],
+                    x0=selected_years[0],
+                    x1=selected_years[0],
                     y0=0,
                     y1=1,
                     xref="x",
@@ -171,7 +198,7 @@ def updateStackedEnergyChart_percentage(filtered_data, selected_category, tree):
         )
         return fig
 
-    min_year, max_year = min(unique_years), max(unique_years)
+    min_year, max_year = min(selected_years), max(selected_years)
     fig.update_layout(
         shapes=[
             dict(
@@ -189,53 +216,6 @@ def updateStackedEnergyChart_percentage(filtered_data, selected_category, tree):
     )
     return fig
 
-
-# CALLBACK FOR DATA FILTEING FOR OVERVIEW (MAP)
-
-@app.callback(
-    [
-        Output("consumption_overview_data_storage", "data"),
-        Output("selected_years_con", "data"),
-        Output("selected_category_overview_con", "data"),
-        Output("selected_states_con", "data"),
-    ],
-    [
-        State("selected_years_con", "data"),
-        State("selected_category_overview_con", "data"),
-        State("selected_states_con", "data"),
-        Input("icicle-plot-consumption", "clickData"),
-        Input("year-slider", "value"),
-        Input("choropleth-map-consumption", "clickData"),
-    ], prevent_initial_call=True)
-def update_consumption_overview_data_storage(current_selected_years, current_selected_category, current_selected_state,
-                                             selected_consumption, time_range, click_data_consumption_map):
-    return update_overview_data_storage(current_selected_years, current_selected_category, current_selected_state,
-                                        selected_consumption, time_range, click_data_consumption_map, True)
-
-
-@app.callback(
-    [
-        Output("production_overview_data_storage", "data"),
-        Output("selected_years_pro", "data"),
-        Output("selected_category_overview_pro", "data"),
-        Output("selected_states_pro", "data")
-    ],
-    [
-        State("selected_years_pro", "data"),
-        State("selected_category_overview_pro", "data"),
-        State("selected_states_pro", "data"),
-        Input("icicle-plot-production", "clickData"),
-        Input("year-slider", "value"),
-        Input("choropleth-map-production", "clickData"),
-    ], prevent_initial_call=True)
-def update_production_overview_data_storage(current_selected_years,current_selected_category, current_selected_state,
-                                            selected_production, time_range, click_data_production_map):
-
-    return update_overview_data_storage(current_selected_years,current_selected_category, current_selected_state,
-                                        selected_production,
-                                        time_range, click_data_production_map, False)
-
-
 def get_current_data(data_to_update):
     if data_to_update:
         current_data_df = pd.DataFrame(data_to_update)
@@ -246,24 +226,25 @@ def get_current_data(data_to_update):
 
 def get_unfiltered_years_cats_states(is_consumption):
     if is_consumption:
-        return [2021], dt.all_consumption, dt.state_codes
+        return [2021], ['TETCB'], 'US'
     else:
-        return [2021], dt.all_production, dt.state_codes
+        return [2021], ['TEPRB'], 'US'
 
 
-
-def update_overview_data_storage(current_selected_years, current_selected_category, current_selected_state, selected_cat, time_range, click_data_map, is_consumption):
+# CALLBACK FOR DATA FILTERING FOR OVERVIEW (MAP)
+def update_overview_data_storage(current_selected_category, current_selected_state, selected_cat, time_range, click_data_map, is_consumption):
     current_data_df_overview = pd.DataFrame(dt.stads_df)
     years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
-
+    tree = dt.consumption if is_consumption else dt.production
     if not selected_cat and not time_range and not click_data_map:
         return current_data_df_overview.to_dict("records"), years_def, cats_def, states_def
 
     if selected_cat:
-        select_Category = selected_cat["points"][0]["label"]
+        select_Category = get_MSN_code_from_title(selected_cat["points"][0]["label"], tree)
+
+        print(f'Cat was selected, update_overview_data_storage: Selected category: {select_Category}')
     else:
         select_Category = current_selected_category if not None else cats_def
-
 
     if click_data_map:
         state_code = click_data_map["points"][0]["text"]
@@ -286,33 +267,74 @@ def update_overview_data_storage(current_selected_years, current_selected_catego
             & (current_data_df_overview["Year"] <= max_year)
             ]
 
-    current_data_df_overview = filterByValues([select_Category], current_data_df_overview)
+    current_data_df_overview = filterByValues(select_Category, current_data_df_overview)
     current_data_df_overview = filterData([state_code], current_data_df_overview, "StateCode")
 
     if current_data_df_overview.empty:
         return dt.stads_df.to_dict("records"), time_range, select_Category, state_code
 
+    print(f'Selected category from the filtering overview {select_Category}')
     return current_data_df_overview.to_dict("records"), time_range, select_Category, state_code
+
+@app.callback(
+    [
+        Output("consumption_overview_data_storage", "data"),
+        Output("selected_years_con", "data"),
+        Output("selected_category_overview_con", "data"),
+        Output("selected_states_con", "data"),
+    ],
+    [
+        State("selected_category_overview_con", "data"),
+        State("selected_states_con", "data"),
+        Input("icicle-plot-consumption", "clickData"),
+        Input("year-slider", "value"),
+        Input("choropleth-map-consumption", "clickData"),
+    ], prevent_initial_call=True)
+def update_consumption_overview_data_storage(current_selected_category, current_selected_state,
+                                             selected_consumption, time_range, click_data_consumption_map):
+    return update_overview_data_storage(current_selected_category, current_selected_state,
+                                        selected_consumption, time_range, click_data_consumption_map, True)
+
+
+@app.callback(
+    [
+        Output("production_overview_data_storage", "data"),
+        Output("selected_years_pro", "data"),
+        Output("selected_category_overview_pro", "data"),
+        Output("selected_states_pro", "data")
+    ],
+    [
+        State("selected_category_overview_pro", "data"),
+        State("selected_states_pro", "data"),
+        Input("icicle-plot-production", "clickData"),
+        Input("year-slider", "value"),
+        Input("choropleth-map-production", "clickData"),
+    ], prevent_initial_call=True)
+def update_production_overview_data_storage(current_selected_category, current_selected_state,
+                                            selected_production, time_range, click_data_production_map):
+
+    return update_overview_data_storage(current_selected_category, current_selected_state,
+                                        selected_production,
+                                        time_range, click_data_production_map, False)
+
 
 
 # CALLBACK FOE DETAILED DAATA STORAGE FOR CONSUMPTION
 @app.callback(
     Output("consumption_detailed_data_storage", "data"),
     [
-        State("selected_years_con", "data"),
         State("selected_category_overview_con", "data"),
         State("selected_states_con", "data"),
-        State("consumption_detailed_data_storage", "data"),
         Input("icicle-plot-consumption", "clickData"),
         Input("year-slider", "value"),
         Input("choropleth-map-consumption", "clickData"),
     ],
     prevent_initial_call=True)
-def update_consumption_detailed_data_storage(current_selected_years, current_selected_category,
-                                             current_selected_state, current_data_detailed, selected_consumption,
+def update_consumption_detailed_data_storage(current_selected_category,
+                                             current_selected_state, selected_consumption,
                                              time_range, click_data_consumption_map):
-    return update_detailed_data_storage(current_selected_years, current_selected_category,
-                                        current_selected_state, current_data_detailed,
+    return update_detailed_data_storage(current_selected_category,
+                                        current_selected_state,
                                         selected_consumption, time_range,
                                         click_data_consumption_map, True)
 
@@ -320,27 +342,25 @@ def update_consumption_detailed_data_storage(current_selected_years, current_sel
 @app.callback(
     Output("production_detailed_data_storage", "data"),
     [
-        State("selected_years_pro", "data"),
         State("selected_category_overview_pro", "data"),
         State("selected_states_pro", "data"),
-        State("production_detailed_data_storage", "data"),
         Input("icicle-plot-production", "clickData"),
         Input("year-slider", "value"),
         Input("choropleth-map-production", "clickData"),
     ],
     prevent_initial_call=True)
-def update_production_detailed_data_storage(current_selected_years, current_selected_category,
-                                            current_selected_state,current_data_detailed,
+def update_production_detailed_data_storage(current_selected_category,
+                                            current_selected_state,
                                             selected_production, time_range, click_data_production_map):
 
-    return update_detailed_data_storage(current_selected_years, current_selected_category,
-                                        current_selected_state, current_data_detailed,
+    return update_detailed_data_storage(current_selected_category,
+                                        current_selected_state,
                                         selected_production, time_range,
                                         click_data_production_map, False)
 
 
-def update_detailed_data_storage(current_selected_years, current_selected_category, current_selected_state,
-                                 current_data_detailed, selected_cat, time_range,
+def update_detailed_data_storage(current_selected_category, current_selected_state,
+                                 selected_cat, time_range,
                                  click_data_map, is_consumption):
 
 
@@ -351,11 +371,14 @@ def update_detailed_data_storage(current_selected_years, current_selected_catego
     if not selected_cat and not time_range and not click_data_map:
         return current_data_df.to_dict("records")
 
+    children_of_cat = None
     if selected_cat:
-
-        select_Category = get_all_children_of_category(selected_cat["points"][0]["label"], tree)
-    else:
-        select_Category = get_all_children_of_category(current_selected_category if not None else cats_def, tree)
+        children_of_cat = get_all_children_of_category(selected_cat["points"][0]["label"], tree)
+        print(children_of_cat)
+    if children_of_cat is not None:
+        select_Category = children_of_cat
+    elif children_of_cat is None:
+        select_Category = current_selected_category
 
 
     if click_data_map:
@@ -379,7 +402,7 @@ def update_detailed_data_storage(current_selected_years, current_selected_catego
             & (current_data_df["Year"] <= max_year)
             ]
 
-    current_data_df = filterByValues([select_Category], current_data_df)
+    current_data_df = filterByValues(select_Category, current_data_df)
     current_data_df = filterData([state_code], current_data_df, "StateCode")
 
     if current_data_df.empty:
@@ -426,11 +449,26 @@ def setLabel_categories_switch(on):
     else:
         return "Separate Analysis"
 
+@app.callback(
+    [
+        Output("data_for_map_con", "data"),
+        Output("consumption-map-switch", "label")
+    ],
+    Input("consumption-map-switch", "on"),
+)
+def update_map_switch(on):
+    if on:
+        return 'EnergyPerGDP', "Consumption per GDP"
+    else:
+        return 'EnergyPerCapita', "Consumption per Capita"
 
-def update_map(clickData):
+
+def update_map(clickData, current_data, columnNameData_to_use="Data"):
+
+###I HAVE ALREADY PASSED GEO DATA I CAN PASS ANOTHER DATA TO PUT THE COLORS...
     geoData = dt.geo_data_us_states_hexgrid
     geoData["centroid"] = geoData["geometry"].apply(lambda x: x.centroid)
-    # Create a Scattermapbox trace for annotations
+
     annotations_trace = go.Scattermapbox(
         lon=geoData["centroid"].apply(lambda x: x.x),
         lat=geoData["centroid"].apply(lambda x: x.y),
@@ -443,39 +481,61 @@ def update_map(clickData):
         hovertext=geoData["google_name"],
     )
 
-    # Draw the map using plotly express
-    fig = px.choropleth_mapbox(
-        geoData,
-        geojson=geoData.geometry,
-        locations=geoData.index,
-        mapbox_style="white-bg",
-        center={"lat": 37.0902, "lon": -95.7129},
-        zoom=2.5,
-    )
-
-    # Update the map layout
-    fig.update_geos(
-        fitbounds="locations",  # Adjust the bounds to fit the locations
-        visible=False,  # Hide the real map
-    )
-
-    # Add the annotations trace to the figure
-    fig.add_trace(annotations_trace)
-
-    # Highlight the selected hexagon
-    if clickData and "points" in clickData:
-        selected_state = clickData["points"][0]["text"]
-        print("Selected State:", selected_state)
-
-        # Update the opacity for the selected hexagon
-        fig.update_traces(
-            marker=dict(
-                opacity=[
-                    1.0 if state_code == selected_state else 0.3
-                    for state_code in geoData["iso3166_2"]
-                ],
-            ),
+    if clickData:
+        # Draw the map using plotly express
+        fig = px.choropleth_mapbox(
+            geoData,
+            geojson=geoData.geometry,
+            locations=geoData.index,
+            mapbox_style="white-bg",
+            center={"lat": 37.0902, "lon": -95.7129},
+            zoom=2.5,
         )
+
+        # Update the map layout
+        fig.update_geos(
+            fitbounds="locations",  # Adjust the bounds to fit the locations
+            visible=False,  # Hide the real map
+        )
+
+        # Add the annotations trace to the figure
+        fig.add_trace(annotations_trace)
+
+        # Highlight the selected hexagon
+        if "points" in clickData:
+            selected_state = clickData["points"][0]["text"]
+            print("Selected State:", selected_state)
+
+            # Update the opacity for the selected hexagon
+            fig.update_traces(
+                marker=dict(
+                    opacity=[
+                        1.0 if state_code == selected_state else 0.3
+                        for state_code in geoData["iso3166_2"]
+                    ],
+                ),
+            )
+    else:
+        fig = px.choropleth_mapbox(
+            geoData,
+            geojson=geoData.geometry,
+            locations=geoData.index,
+            mapbox_style="white-bg",
+            color=current_data[columnNameData_to_use].astype('float'),
+            color_continuous_scale='Viridis',
+            range_color=(min(current_data[columnNameData_to_use].astype('float')), max(current_data[columnNameData_to_use].astype('float'))),
+            center={"lat": 37.0902, "lon": -95.7129},
+            zoom=2.5,
+        )
+
+        # Update the map layout
+        fig.update_geos(
+            fitbounds="locations",  # Adjust the bounds to fit the locations
+            visible=False,  # Hide the real map
+        )
+
+        # Add the annotations trace to the figure
+        fig.add_trace(annotations_trace)
 
     # Update the layout of the entire figure
     fig.update_layout(
@@ -486,18 +546,23 @@ def update_map(clickData):
 
 @app.callback(
     Output("choropleth-map-consumption", "figure"),
-    Input("choropleth-map-consumption", "clickData"),
+    [Input("choropleth-map-consumption", "clickData"),
+     Input("data_for_map_con", "data"),
+     State("consumption_overview_data_storage", "data")]
 )
-def update_map_consumption(clickData):
-    return update_map(clickData)
+def update_map_consumption(clickData, columnNamedataToUse, current_data_to_use):
+    return update_map(clickData, current_data_to_use, columnNamedataToUse)
+
 
 
 @app.callback(
     Output("choropleth-map-production", "figure"),
-    Input("choropleth-map-production", "clickData"),
+    [Input("choropleth-map-production", "clickData"),
+     State("production_overview_data_storage", "data"),
+     ]
 )
-def update_map_production(clickData):
-    return update_map(clickData)
+def update_map_production(clickData, current_data_to_use):
+    return update_map(clickData, current_data_to_use)
 
 
 def toggle_visibility_consumption_production(toggle_state):

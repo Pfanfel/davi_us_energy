@@ -1,7 +1,7 @@
 from dash import dcc
 from dash import html
 import plotly.express as px
-
+import dash_daq as daq
 
 def USmap(dataframe, id, title):
     colorscale = ["#f1a340", "#f7f7f7", "#998ec3"]
@@ -28,6 +28,26 @@ def USmap(dataframe, id, title):
         ],
         className="pretty_container",
     )
+
+def USmapHEX_with_switch(nameMap, nameofASwitch):
+    toggle_switch = daq.BooleanSwitch(
+        id=nameofASwitch,
+        on=True,
+        label=True,
+        labelPosition="bottom",
+        style={
+            "display": "inline-block",
+            "vertical-align": "middle",
+            "margin-left": "10px",
+            "transform": "scale(0.8)",
+        },
+    )
+
+    return html.Div(
+        children=[toggle_switch, USmapHEX(nameMap)],
+        className="pretty_container",
+    )
+
 
 
 def USmapHEX(name):

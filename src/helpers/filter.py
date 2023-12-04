@@ -57,7 +57,20 @@ def get_all_categories_at_same_level(category, tree):
     return target_level, categories
 
 
+def get_allNodes(node, allNodes):
+    allNodes.append(node)
 
+    if "children" in node:
+        for child in node["children"]:
+            get_allNodes(child, allNodes)
+
+    return allNodes
+
+def get_MSN_code_from_title(title, tree):
+
+    all_nodes = get_allNodes(tree[0],[])
+    nodes = [node["key"] for node in all_nodes if node['title'] == title]
+    return nodes
 
 
 def get_all_children_of_category(category, tree):
@@ -77,6 +90,10 @@ def get_all_children_of_category(category, tree):
     for node in tree:
         traverse_and_collect_children(node)
 
+    print(f'Found children for {category}: {children}')
+
+    if children is []:
+        return [category]
     return children
 
 

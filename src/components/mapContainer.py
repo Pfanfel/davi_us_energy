@@ -6,7 +6,6 @@ import pandas as pd
 from dash import html
 
 
-
 def MapContainer(USmapConsumption, USmapProduction):
     return html.Div(
         [

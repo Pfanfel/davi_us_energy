@@ -8,7 +8,8 @@ from layouts import (
     time_slider,
     map_container,
     pick_consumption_or_production,
-    div_bar_chart,
+    div_bar_chart_con,
+    div_bar_chart_pro,
     stacked_area_chart_percentage_consumption,
     stacked_area_chart_percentage_production, storage_consumption_overview, storage_consumption_detailed,
     storage_production_detailed, storage_production_overview,
@@ -18,6 +19,7 @@ from layouts import (
     selected_category_overview_pro,
     selected_years_overview_pro,
     selected_states_pro,
+    default_data_for_map_con,
 )
 from pages import layout_about_energy_page, layout_about_dataset_page
 from app import app
@@ -56,7 +58,8 @@ def display_page(pathname):
                 debug_data_table,
                 stacked_area_chart_percentage_consumption,
                 stacked_area_chart_percentage_production,
-                div_bar_chart,
+                div_bar_chart_con,
+                div_bar_chart_pro,
                 storage_consumption_overview,
                 storage_consumption_detailed,
                 storage_production_overview,
@@ -67,7 +70,7 @@ def display_page(pathname):
                 selected_category_overview_pro,
                 selected_years_overview_pro,
                 selected_states_pro,
-
+                default_data_for_map_con
             ],
             className="home",
         )
@@ -87,7 +90,7 @@ def index():
 
 # Set layout to index function
 app.layout = index()
-level, nodes = get_all_categories_at_same_level("renewable energy", dt.production)
+level, nodes = get_all_categories_at_same_level("REPRB", dt.production)
 print(f"Level: {level}, Nodes at same level: {nodes}")
 
 # Call app server
