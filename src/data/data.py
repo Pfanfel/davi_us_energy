@@ -8,17 +8,18 @@ import geopandas as gpd
 import pandas as pd
 
 stads_df = pd.read_csv("data/stads_data_parsed_cleaned_pop_gdp_v1.csv")
+stads_df = stads_df[~stads_df['StateCode'].isin(['X3', 'X5'])]
+
 min_energy_data, max_energy_data = stads_df['Data'].min(), stads_df['Data'].max()
 
 min_energy_GDP, max_energy_GDP = stads_df['EnergyPerGDP'].min(), stads_df['EnergyPerGDP'].max()
 min_energy_PerCapita, max_energy_PerCapita = stads_df['EnergyPerCapita'].min(), stads_df['EnergyPerCapita'].max()
-print(min_energy_GDP)
-print(max_energy_GDP)
 
-print(min_energy_PerCapita)
-print(max_energy_PerCapita)
 
-geo_data_us_states_hexgrid = gpd.read_file("data/us_states_hexgrid.geojson.json")
+geoData = gpd.read_file("data/us_states_hexgrid.geojson.json")
+geoData['geometry'] = geoData['geometry'].simplify(tolerance=0.01)
+col_to_del_geo = ['cartodb_id', 'created_at', 'updated_at', 'label', 'bees', 'google_name']
+geoData.drop(columns=col_to_del_geo, inplace=True)
 
 # # Load the regular DataFrame
 # stads_df = pd.read_csv("data/stads_data_parsed_cleaned_pop_gdp_v1.csv")
@@ -27,8 +28,7 @@ geo_data_us_states_hexgrid = gpd.read_file("data/us_states_hexgrid.geojson.json"
 # # Perform the merge operation using the merge method of GeoDataFrame
 # base_data = geo_data_us_states_hexgrid.merge(stads_df, left_on='iso3166_2', right_on='StateCode', how='inner')
 # # Drop unnecessary columns
-# col_to_del = ['datatype', 'Population', 'GDP', 'cartodb_id', 'created_at', 'updated_at', 'label', 'bees', 'iso3166_2', 'google_name']
-# base_data.drop(columns=col_to_del, inplace=True)
+
 #
 # # Save as GeoJSON
 # output_file_path = 'data/stads_data_with_hexgrid.geojson'

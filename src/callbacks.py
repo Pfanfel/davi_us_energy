@@ -6,7 +6,7 @@ from helpers.filter import (
     filterByValues,
     get_all_categories_at_same_level,
     get_MSN_code_from_title,
-    get_all_children_of_category,
+    get_all_children_of_category, get_title_from_MSN_code,
 )
 from data import data as dt
 import plotly.graph_objects as go
@@ -138,7 +138,7 @@ def updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_s
 
     state_code = selected_state if not None else states_def
     print(f'updateStackedEnergyChart_percentage: Selected categories : {select_Categories}')
-    #filterind data frame without filtering by years
+
     current_data_df = filterByValues(select_Categories, current_data_df)
     current_data_df = filterData([state_code], current_data_df, "StateCode")
 
@@ -463,25 +463,45 @@ def update_map_switch(on):
         return 'EnergyPerCapita', "Consumption per Capita"
 
 
-def update_map(clickData, current_data, columnNameData_to_use="Data"):
+def update_map(clickData, selected_category, selected_years, columnNameData_to_use="Data"):
 
-###I HAVE ALREADY PASSED GEO DATA I CAN PASS ANOTHER DATA TO PUT THE COLORS...
-    geoData = dt.geo_data_us_states_hexgrid
-    current = pd.DataFrame(current_data)
-    min_range, max_range = current[columnNameData_to_use].min(), current[columnNameData_to_use].max()
+
+    geoData = dt.geoData
+    tree = dt.consumption if columnNameData_to_use !="Data" else dt.production
+    title_cat = get_title_from_MSN_code(selected_category[0], tree)
+    ##FILTERING
+    current = pd.DataFrame(dt.stads_df)
+    current = filterData(selected_category, current, "MSN")
+    current = filterData(selected_years, current, "Year")
+
+    print('UPDATE MAP CALLED')
+    print(f'Chosen data to use {columnNameData_to_use}')
+    print(f'Chosen category {selected_category}')
+    for state in current['StateCode'].unique():
+        state_data = current[current['StateCode'] == state]
+        value = state_data[columnNameData_to_use].iloc[0]
+        print(f'State: {state}, value: {value}')
+
+    min_range, max_range, median = current[columnNameData_to_use].min(), current[columnNameData_to_use].max(), current[columnNameData_to_use].median()
+    print(f'min: {min_range} max: {max_range}, median {median}')
     merged_data = geoData.merge(current, left_on="iso3166_2", right_on='StateCode')
     merged_data["centroid"] = merged_data["geometry"].apply(lambda x: x.centroid)
+
+    merged_data['hover_text'] = merged_data.apply(lambda row: f"State Code: {row['StateCode']}\n"
+                                                              f"\nFull State Name: {row['full_state_code']}\n"
+                                                              f"\n{title_cat[0]}: {row[columnNameData_to_use]} BTU",
+                                                  axis=1)
 
     annotations_trace = go.Scattermapbox(
         lon=merged_data["centroid"].apply(lambda x: x.x),
         lat=merged_data["centroid"].apply(lambda x: x.y),
         mode="text",
-        text=merged_data["iso3166_2"],
+        text=merged_data["StateCode"],
         textposition="middle center",
         showlegend=False,
         textfont=dict(size=10, color="black"),
         hoverinfo="text",
-        hovertext=merged_data["google_name"],
+        hovertext=merged_data["hover_text"],
     )
 
     if clickData:
@@ -514,7 +534,7 @@ def update_map(clickData, current_data, columnNameData_to_use="Data"):
                 marker=dict(
                     opacity=[
                         1.0 if state_code == selected_state else 0.3
-                        for state_code in merged_data["iso3166_2"]
+                        for state_code in merged_data["StateCode"]
                     ],
                 ),
             )
@@ -549,23 +569,28 @@ def update_map(clickData, current_data, columnNameData_to_use="Data"):
 
 @app.callback(
     Output("choropleth-map-consumption", "figure"),
-    [Input("choropleth-map-consumption", "clickData"),
+    [
+     Input("choropleth-map-consumption", "clickData"),
+     Input("selected_category_overview_con", "data"),
+     Input("selected_years_con", "data"),
      Input("data_for_map_con", "data"),
-     State("consumption_overview_data_storage", "data")]
+     ]
 )
-def update_map_consumption(clickData, columnNamedataToUse, current_data_to_use):
-    return update_map(clickData, current_data_to_use, columnNamedataToUse)
+def update_map_consumption(clickData, selected_category, selected_years, data_to_use):
+    return update_map(clickData, selected_category, selected_years, data_to_use)
 
 
 
 @app.callback(
     Output("choropleth-map-production", "figure"),
-    [Input("choropleth-map-production", "clickData"),
-     State("production_overview_data_storage", "data"),
+    [
+        Input("choropleth-map-consumption", "clickData"),
+        Input("selected_category_overview_con", "data"),
+        Input("selected_years_con", "data")
      ]
 )
-def update_map_production(clickData, current_data_to_use):
-    return update_map(clickData, current_data_to_use)
+def update_map_production(clickData, selected_category, selected_years):
+    return update_map(clickData, selected_category, selected_years)
 
 
 def toggle_visibility_consumption_production(toggle_state):

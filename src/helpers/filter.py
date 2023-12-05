@@ -67,12 +67,14 @@ def get_allNodes(node, allNodes):
     return allNodes
 
 def get_MSN_code_from_title(title, tree):
-
     all_nodes = get_allNodes(tree[0],[])
     nodes = [node["key"] for node in all_nodes if node['title'] == title]
     return nodes
 
-
+def get_title_from_MSN_code(msn, tree):
+    all_nodes = get_allNodes(tree[0],[])
+    nodes = [node["title"] for node in all_nodes if node['key'] == msn]
+    return nodes
 def get_all_children_of_category(category, tree):
     children = []
 
