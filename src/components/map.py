@@ -44,7 +44,12 @@ def USmapHEX_with_switch(nameMap, nameofASwitch):
     )
 
     return html.Div(
-        children=[toggle_switch, USmapHEX(nameMap)],
+        [toggle_switch,
+            dcc.Graph(
+                id=nameMap,
+                style={"width": "100%", "height": "500px"},
+            )
+        ],
         className="pretty_container",
     )
 

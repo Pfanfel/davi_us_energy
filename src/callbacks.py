@@ -467,26 +467,29 @@ def update_map(clickData, current_data, columnNameData_to_use="Data"):
 
 ###I HAVE ALREADY PASSED GEO DATA I CAN PASS ANOTHER DATA TO PUT THE COLORS...
     geoData = dt.geo_data_us_states_hexgrid
-    geoData["centroid"] = geoData["geometry"].apply(lambda x: x.centroid)
+    current = pd.DataFrame(current_data)
+    min_range, max_range = current[columnNameData_to_use].min(), current[columnNameData_to_use].max()
+    merged_data = geoData.merge(current, left_on="iso3166_2", right_on='StateCode')
+    merged_data["centroid"] = merged_data["geometry"].apply(lambda x: x.centroid)
 
     annotations_trace = go.Scattermapbox(
-        lon=geoData["centroid"].apply(lambda x: x.x),
-        lat=geoData["centroid"].apply(lambda x: x.y),
+        lon=merged_data["centroid"].apply(lambda x: x.x),
+        lat=merged_data["centroid"].apply(lambda x: x.y),
         mode="text",
-        text=geoData["iso3166_2"],
+        text=merged_data["iso3166_2"],
         textposition="middle center",
         showlegend=False,
         textfont=dict(size=10, color="black"),
         hoverinfo="text",
-        hovertext=geoData["google_name"],
+        hovertext=merged_data["google_name"],
     )
 
     if clickData:
         # Draw the map using plotly express
         fig = px.choropleth_mapbox(
-            geoData,
-            geojson=geoData.geometry,
-            locations=geoData.index,
+            merged_data,
+            geojson=merged_data.geometry,
+            locations=merged_data.index,
             mapbox_style="white-bg",
             center={"lat": 37.0902, "lon": -95.7129},
             zoom=2.5,
@@ -511,19 +514,19 @@ def update_map(clickData, current_data, columnNameData_to_use="Data"):
                 marker=dict(
                     opacity=[
                         1.0 if state_code == selected_state else 0.3
-                        for state_code in geoData["iso3166_2"]
+                        for state_code in merged_data["iso3166_2"]
                     ],
                 ),
             )
     else:
         fig = px.choropleth_mapbox(
-            geoData,
-            geojson=geoData.geometry,
-            locations=geoData.index,
+            merged_data,
+            geojson=merged_data.geometry,
+            locations=merged_data.index,
             mapbox_style="white-bg",
-            color=current_data[columnNameData_to_use].astype('float'),
+            color=columnNameData_to_use,
+            range_color=(min_range, max_range),
             color_continuous_scale='Viridis',
-            range_color=(min(current_data[columnNameData_to_use].astype('float')), max(current_data[columnNameData_to_use].astype('float'))),
             center={"lat": 37.0902, "lon": -95.7129},
             zoom=2.5,
         )

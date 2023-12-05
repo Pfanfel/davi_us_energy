@@ -1,20 +1,38 @@
-"""
-This file is used to load data from the data folder and perform any data manipulation that is needed during the lifecycle of the app.
-"""
-
-# Import Pandas
+from src.helpers import filter as flt
 import pandas as pd
 import geopandas as gpd
-from src.helpers import filter as flt
+from shapely import wkt
 
-stads_df = pd.read_csv(
-    # import stads_data_parsed_cleaned_pop_gdp_v1.csv from the same folder
-    "data/stads_data_parsed_cleaned_pop_gdp_v1.csv",
-)
 
-# Load the data and transform the data with the centroid function
+import geopandas as gpd
+import pandas as pd
+
+stads_df = pd.read_csv("data/stads_data_parsed_cleaned_pop_gdp_v1.csv")
+min_energy_data, max_energy_data = stads_df['Data'].min(), stads_df['Data'].max()
+
+min_energy_GDP, max_energy_GDP = stads_df['EnergyPerGDP'].min(), stads_df['EnergyPerGDP'].max()
+min_energy_PerCapita, max_energy_PerCapita = stads_df['EnergyPerCapita'].min(), stads_df['EnergyPerCapita'].max()
+print(min_energy_GDP)
+print(max_energy_GDP)
+
+print(min_energy_PerCapita)
+print(max_energy_PerCapita)
+
 geo_data_us_states_hexgrid = gpd.read_file("data/us_states_hexgrid.geojson.json")
 
+# # Load the regular DataFrame
+# stads_df = pd.read_csv("data/stads_data_parsed_cleaned_pop_gdp_v1.csv")
+# # Load the GeoDataFrame
+# geo_data_us_states_hexgrid = gpd.read_file("data/us_states_hexgrid.geojson.json")
+# # Perform the merge operation using the merge method of GeoDataFrame
+# base_data = geo_data_us_states_hexgrid.merge(stads_df, left_on='iso3166_2', right_on='StateCode', how='inner')
+# # Drop unnecessary columns
+# col_to_del = ['datatype', 'Population', 'GDP', 'cartodb_id', 'created_at', 'updated_at', 'label', 'bees', 'iso3166_2', 'google_name']
+# base_data.drop(columns=col_to_del, inplace=True)
+#
+# # Save as GeoJSON
+# output_file_path = 'data/stads_data_with_hexgrid.geojson'
+# base_data.to_file(output_file_path, driver='GeoJSON')
 
 production_hirarchie_icicle = {
     "parents": [
