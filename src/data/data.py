@@ -8,7 +8,6 @@ import geopandas as gpd
 import pandas as pd
 
 stads_df = pd.read_csv("data/stads_data_parsed_cleaned_pop_gdp_v1.csv")
-stads_df = stads_df[~stads_df['StateCode'].isin(['X3', 'X5'])]
 
 min_energy_data, max_energy_data = stads_df['Data'].min(), stads_df['Data'].max()
 

@@ -15,38 +15,81 @@ from app import app
 
 
 
+def calculate_mean_for_US_for(selected_category, selected_years):
+    print(f'Selected years {selected_years} ')
+    current_data_df = pd.DataFrame(dt.stads_df)
+    current_data_df = filterData([selected_category], current_data_df, "MSN")
+    current_data_df = filterData(['US'], current_data_df, "StateCode")
+    if len(selected_years) == 1:
+        single_year = selected_years[0]
+        single_year = int(single_year)
+        current_data_df = current_data_df[current_data_df["Year"] == single_year]
+        data_value = current_data_df['Data'].iloc[0]
+        return data_value / 50
+
+    elif len(selected_years) == 2:
+        min_year, max_year = selected_years
+        min_year = int(min_year)
+        max_year = int(max_year)
+
+        current_data_df = current_data_df[
+            (current_data_df["Year"] >= min_year)
+            & (current_data_df["Year"] <= max_year)
+            ]
+        data_values = current_data_df['Data'].tolist()
+        return data_values.mean() / 50
 
 
-# TODO: FOR KIDS CATEGORIES OR WHAT
-def update_diverging_bar_chart(data_production, data_consumption, selected_category):
-    filtered_data_production = pd.DataFrame(data_production)
-    filtered_data_consumption = pd.DataFrame(data_consumption)
-    # state_code = current_data_df['StateCode'].unique()[0]
-    # time_range = current_data_df['Year'].unique()
-    #
-    # calc_avg = dt.calculate_avg_value(
-    #     current_data_df, state_code, time_range, selected_category
-    # )
-    # print(f"the calc_avg: {calc_avg}")
+def calculate_relative_value_for(filtered_data, mean_US_val):
+    # Check if filtered_data is empty or mean_US_val is None
+    if filtered_data.empty:
+        print(f'FILTERED DATA IS EMPTY')
+        return None
+    if mean_US_val is None:
+        print('mean_US_val is None')
+        return None
+    if filtered_data['Data'].isnull().any():
+        filtered_data['Data'].fillna(0, inplace=True)
+
+    # Calculate the relative value
+    relative_value = ((filtered_data['Data'].iloc[0] - mean_US_val) / mean_US_val) * 100
+    print(f'Relative data {relative_value}')
+    return relative_value
+
+
+def update_diverging_bar_chart(selected_cat, selected_state, selected_years, is_consumption):
+    current_data_df = pd.DataFrame(dt.stads_df)
+    tree = dt.consumption if is_consumption else dt.production
+    children_of_cat = None
+    select_Categories = selected_cat
+    if selected_cat is not None and selected_cat != []:
+        print(f'selected_cat is not none: {selected_cat}')
+        children_of_cat = get_all_children_of_category(selected_cat[0], tree)
+        print(f'Children of selected cat: {children_of_cat}')
+    if children_of_cat != [] and children_of_cat is not None:
+        select_Categories = select_Categories + children_of_cat
+
+
+    current_data_df = filterByValues(select_Categories, current_data_df)
+    current_data_df = filterData([selected_state], current_data_df, "StateCode")
+    current_data_df = filterByValues(selected_years, current_data_df)
+
+    for category in current_data_df['MSN'].unique():
+        mean_US_val = calculate_mean_for_US_for(category, selected_years)
+        filtered_data = current_data_df[current_data_df['MSN'] == category]
+        relative_values = calculate_relative_value_for(filtered_data, mean_US_val)
+        current_data_df.loc[current_data_df['MSN'] == category, 'RelativeData'] = relative_values
 
     fig = go.Figure()
+    #y=current_data_df['MSN'] --> change to to titles and the list of titles
+    # Adding the trace for the diverging bar chart
     fig.add_trace(
         go.Bar(
-            x=-filtered_data_production["energy_types"].values,
-            y=filtered_data_production["Year"],
+            x=current_data_df['RelativeData'],
+            y=current_data_df['energy_type'],  # Assuming 'MSN' column has the categories
             orientation="h",
-            name="Production",
-            customdata=filtered_data_production["energy_types"],
-            hovertemplate="Year: %{y}<br>Pop:%{customdata}<br>Production:energy_types<extra></extra>",
-        )
-    )
-    fig.add_trace(
-        go.Bar(
-            x=filtered_data_consumption["energy_types"].values,
-            y=filtered_data_consumption["Year"],
-            orientation="h",
-            name="Consumption",
-            hovertemplate="Year: %{y}<br>Pop:%{x}<br>Consumption:energy_types<extra></extra>",
+            marker=dict(color=current_data_df['RelativeData'].apply(lambda x: 'blue' if x >= 0 else 'red')),
+            hovertemplate="Category: %{y}<br>Year: " + str(selected_years) + "<br>Relative Value: %{x}<extra></extra>",
         )
     )
 
@@ -59,33 +102,50 @@ def update_diverging_bar_chart(data_production, data_consumption, selected_categ
         legend_orientation="h",
         legend_x=-0.05,
         legend_y=1.1,
+        xaxis=dict(
+            title='Relative Data (%)',
+            zeroline=True,
+            zerolinewidth=2,
+            zerolinecolor='black'
+        ),
+        yaxis=dict(
+            title='Category'
+        )
     )
+
+    # Centering the diverging bars
+    max_abs_value = current_data_df['RelativeData'].abs().max()
+    fig.update_xaxes(range=[-max_abs_value, max_abs_value])
 
     return fig
 
 
 @app.callback(
     Output("diverging-bar-chart-consumption", "figure"),
-    [Input("production_detailed_data_storage", "data"),
-     Input("consumption_detailed_data_storage", "data"),
-     State("selected_category_overview_pro", "data"),
-     State("selected_category_overview_con", "data")
+    [
+        Input("selected_category_overview_con", "data"),
+        Input("selected_states_con", "data"),
+        Input("selected_years_con", "data"),
+
      ],
     prevent_initial_call=True
 )
-def update_diverging_bar_chart_prod_cons(filtered_data_prod, filtered_data_cons, selected_category_prod, selected_category_con):
-    return update_diverging_bar_chart(filtered_data_prod, filtered_data_cons, selected_category[0])
+def update_diverging_bar_chart_cons(selected_category, selected_state,  selected_year):
+    return update_diverging_bar_chart(selected_category, selected_state,  selected_year, True)
 
 
 @app.callback(
-    Output("diverging-bar-chart_production", "figure"),
-    [Input("production_detailed_data_storage", "data"),
-     State("selected_category_overview", "data")]
+    Output("diverging-bar-chart-production", "figure"),
+    [
+        Input("selected_category_overview_pro", "data"),
+        Input("selected_states_pro", "data"),
+        Input("selected_years_pro", "data"),
+     ],
+    prevent_initial_call=True
 )
-def update_diverging_bar_chart_production(filtered_data, selected_category):
-    return update_diverging_bar_chart(filtered_data, selected_category[0])
+def update_diverging_bar_chart_prod(selected_category, selected_state,  selected_year):
+    return update_diverging_bar_chart(selected_category, selected_state,  selected_year, False)
 
-# DETAILED PLOT -> FIXED
 @app.callback(
     Output("stacked-area-chart-consumption", "figure"),
     [
@@ -463,9 +523,10 @@ def update_map_switch(on):
         return 'EnergyPerCapita', "Consumption per Capita"
 
 
+
+
+
 def update_map(clickData, selected_category, selected_years, columnNameData_to_use="Data"):
-
-
     geoData = dt.geoData
     tree = dt.consumption if columnNameData_to_use !="Data" else dt.production
     title_cat = get_title_from_MSN_code(selected_category[0], tree)
@@ -484,6 +545,8 @@ def update_map(clickData, selected_category, selected_years, columnNameData_to_u
 
     min_range, max_range, median = current[columnNameData_to_use].min(), current[columnNameData_to_use].max(), current[columnNameData_to_use].median()
     print(f'min: {min_range} max: {max_range}, median {median}')
+
+
     merged_data = geoData.merge(current, left_on="iso3166_2", right_on='StateCode')
     merged_data["centroid"] = merged_data["geometry"].apply(lambda x: x.centroid)
 
@@ -584,9 +647,9 @@ def update_map_consumption(clickData, selected_category, selected_years, data_to
 @app.callback(
     Output("choropleth-map-production", "figure"),
     [
-        Input("choropleth-map-consumption", "clickData"),
-        Input("selected_category_overview_con", "data"),
-        Input("selected_years_con", "data")
+        Input("choropleth-map-production", "clickData"),
+        Input("selected_category_overview_pro", "data"),
+        Input("selected_years_pro", "data")
      ]
 )
 def update_map_production(clickData, selected_category, selected_years):

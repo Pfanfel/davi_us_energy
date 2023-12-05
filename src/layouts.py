@@ -58,7 +58,7 @@ selected_states_con = dcc.Store(id='selected_states_con', data='US')
 
 selected_category_overview_pro = dcc.Store(id='selected_category_overview_pro', data=['TEPRB'])
 selected_years_overview_pro = dcc.Store(id='selected_years_pro', data=[1960])
-selected_states_pro = dcc.Store(id='selected_states_pro', data='TX')
+selected_states_pro = dcc.Store(id='selected_states_pro', data='US')
 
 default_data_for_map_con = dcc.Store(id='data_for_map_con', data='EnergyPerCapita')
 #EnergyPerGDP
