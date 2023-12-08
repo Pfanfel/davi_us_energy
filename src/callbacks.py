@@ -176,9 +176,7 @@ def updateStackedEnergyChart_percentage_production(selected_cat, selected_years,
     return updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state, False)
 
 
-# TODO: fix CATEGORIES FILTERING --> DOES NOT WORK CORRECTLY
-# orint when it is called and if it is called on category change!!!
-# then see what categories are selected for that bar chart if it correctly takes children
+
 def updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state, is_consumption):
     print('updateStackedEnergyChart_percentage method called')
     label_addition = 'Consumption' if is_consumption else 'Production'

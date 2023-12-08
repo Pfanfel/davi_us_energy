@@ -44,7 +44,7 @@ production_hirarchie_icicle = {
         "production of renewable energy",
         "production of renewable energy",
         "production of renewable energy",
-    ],# todo: change a labels here to match ith unique titles for MSN values
+    ],
     "labels": [
         "total energy production",
         "production of coal",
