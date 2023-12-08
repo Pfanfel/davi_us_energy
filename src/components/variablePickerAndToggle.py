@@ -1,25 +1,16 @@
 from dash import html
 import dash_daq as daq
-from components.stackedItemContainer import StackedItemContainer
+from src.components.stackedItemContainer import StackedItemContainer
+from src.components.multiStateSwitch import MultiStateSwitch
 
 
 def VariablePickerAndToggle(consumption_filters, production_filters):
     container = StackedItemContainer(consumption_filters, production_filters)
+    multi_state_switch = MultiStateSwitch('multi-state-switch')
     return html.Div(
         [
-            html.P("Toggle consumption icicle plot on/off:"),
-            daq.BooleanSwitch(
-                id="category-toggle",
-                on=False,
-                label=True,
-                labelPosition="bottom",
-                style={
-                    "display": "inline-block",
-                    "vertical-align": "middle",
-                    "margin-left": "10px",
-                    "transform": "scale(0.8)",
-                },
-            ),
+            html.P("Select category:"),
+            multi_state_switch,
             html.Div(id="production-output"),
             html.Div(id="consumption-output"),
             container,

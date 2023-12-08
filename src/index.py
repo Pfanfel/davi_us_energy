@@ -4,15 +4,19 @@ from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 from components.navbar import Navbar
 from layouts import (
-    debug_data_table,
-    time_slider,
-    map_container,
-    pick_consumption_or_production,
+    is_selected_state_pro,
+    is_selected_category_pro,
+    is_selected_state_con,
+    is_selected_category_con,
+    time_slider_checkboxes_container,
     div_bar_chart_con,
     div_bar_chart_pro,
     stacked_area_chart_percentage_consumption,
-    stacked_area_chart_percentage_production, storage_consumption_overview, storage_consumption_detailed,
-    storage_production_detailed, storage_production_overview,
+    stacked_area_chart_percentage_production,
+    storage_consumption_overview,
+    storage_consumption_detailed,
+    storage_production_detailed,
+    storage_production_overview,
     selected_category_overview_con,
     selected_years_overview_con,
     selected_states_con,
@@ -20,6 +24,8 @@ from layouts import (
     selected_years_overview_pro,
     selected_states_pro,
     default_data_for_map_con,
+    consumption_map_icicle_plot_container,
+    production_map_icicle_plot_container
 )
 from pages import layout_about_energy_page, layout_about_dataset_page
 from app import app
@@ -33,15 +39,10 @@ app_name = os.getenv("DASH_APP_PATH", "/davi_us_energy/")
 
 nav = Navbar()
 
-# TODO: To we even need a header?
-header = html.Div(
-    [
-        html.H4(children="Same header for all pages"),
-    ]
-)
 
-content = html.Div([dcc.Location(id="url"), html.Div(id="page-content")])
-container = dbc.Container([header, content])
+
+content = html.Div([dcc.Location(id="url"), html.Div(id="page-content")],  style={'backgroundColor': 'white', 'maxWidth': '100%', 'margin': 'auto'})
+container = dbc.Container([content], fluid=True)
 
 
 
@@ -52,10 +53,9 @@ def display_page(pathname):
     if pathname in [app_name, app_name + "/"]:
         return html.Div(
             [
-                time_slider,
-                pick_consumption_or_production,
-                map_container,
-                debug_data_table,
+                time_slider_checkboxes_container,
+                consumption_map_icicle_plot_container,
+                production_map_icicle_plot_container,
                 stacked_area_chart_percentage_consumption,
                 stacked_area_chart_percentage_production,
                 div_bar_chart_con,
@@ -70,7 +70,12 @@ def display_page(pathname):
                 selected_category_overview_pro,
                 selected_years_overview_pro,
                 selected_states_pro,
-                default_data_for_map_con
+                default_data_for_map_con,
+                is_selected_state_pro,
+                is_selected_category_pro,
+                is_selected_state_con,
+                is_selected_category_con,
+
             ],
             className="home",
         )
@@ -84,7 +89,7 @@ def display_page(pathname):
 
 # Main index function that will call and return all layout variables
 def index():
-    layout = html.Div([nav, container])
+    layout = html.Div([nav, container], style={'backgroundColor': 'white', 'width': '100%', 'height' : '100vh'})
     return layout
 
 

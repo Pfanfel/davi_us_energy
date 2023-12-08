@@ -12,7 +12,7 @@ from data import data as dt
 import plotly.graph_objects as go
 from dash.dependencies import Output, Input, State
 from app import app
-
+import statistics
 
 
 def calculate_mean_for_US_for(selected_category, selected_years):
@@ -37,7 +37,7 @@ def calculate_mean_for_US_for(selected_category, selected_years):
             & (current_data_df["Year"] <= max_year)
             ]
         data_values = current_data_df['Data'].tolist()
-        return data_values.mean() / 50
+        return statistics.mean(data_values) / 50
 
 
 def calculate_relative_value_for(filtered_data, mean_US_val):
@@ -82,7 +82,8 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, is_
 
     fig = go.Figure()
     #y=current_data_df['MSN'] --> change to to titles and the list of titles
-    # Adding the trace for the diverging bar chart
+    # Adding the trace for the d
+    # iverging bar chart
     fig.add_trace(
         go.Bar(
             x=current_data_df['RelativeData'],
@@ -526,7 +527,7 @@ def update_map_switch(on):
 
 
 
-def update_map(clickData, selected_category, selected_years, columnNameData_to_use="Data"):
+def update_map(clickData, selected_category, selected_years, is_selected_state, columnNameData_to_use="Data"):
     geoData = dt.geoData
     tree = dt.consumption if columnNameData_to_use !="Data" else dt.production
     title_cat = get_title_from_MSN_code(selected_category[0], tree)
@@ -535,17 +536,8 @@ def update_map(clickData, selected_category, selected_years, columnNameData_to_u
     current = filterData(selected_category, current, "MSN")
     current = filterData(selected_years, current, "Year")
 
-    print('UPDATE MAP CALLED')
-    print(f'Chosen data to use {columnNameData_to_use}')
-    print(f'Chosen category {selected_category}')
-    for state in current['StateCode'].unique():
-        state_data = current[current['StateCode'] == state]
-        value = state_data[columnNameData_to_use].iloc[0]
-        print(f'State: {state}, value: {value}')
-
     min_range, max_range, median = current[columnNameData_to_use].min(), current[columnNameData_to_use].max(), current[columnNameData_to_use].median()
     print(f'min: {min_range} max: {max_range}, median {median}')
-
 
     merged_data = geoData.merge(current, left_on="iso3166_2", right_on='StateCode')
     merged_data["centroid"] = merged_data["geometry"].apply(lambda x: x.centroid)
@@ -567,7 +559,7 @@ def update_map(clickData, selected_category, selected_years, columnNameData_to_u
         hovertext=merged_data["hover_text"],
     )
 
-    if clickData:
+    if is_selected_state:
         # Draw the map using plotly express
         fig = px.choropleth_mapbox(
             merged_data,
@@ -636,53 +628,164 @@ def update_map(clickData, selected_category, selected_years, columnNameData_to_u
      Input("choropleth-map-consumption", "clickData"),
      Input("selected_category_overview_con", "data"),
      Input("selected_years_con", "data"),
+     Input("is_selected_state_con", "data"),
      Input("data_for_map_con", "data"),
      ]
 )
-def update_map_consumption(clickData, selected_category, selected_years, data_to_use):
-    return update_map(clickData, selected_category, selected_years, data_to_use)
+def update_map_consumption(clickData, selected_category, selected_years, is_selected_state, data_to_use):
+    return update_map(clickData, selected_category, selected_years, is_selected_state, data_to_use)
+
+#############################################
+@app.callback(
+    Output("is_selected_category_con", "data"),
+    [
+        State("is_selected_category_con", "data"),
+        State("selected_category_overview_con", "data"),
+        Input("icicle-plot-consumption", "clickData"),
+    ]
+)
+def update_is_selected_cat_info_con(is_selected_cat, current_selected_cat, click_icicle):
+    return update_is_selected_category_info(is_selected_cat, current_selected_cat, click_icicle)
+
+@app.callback(
+    Output("is_selected_category_pro", "data"),
+    [
+        State("is_selected_category_pro", "data"),
+        State("selected_category_overview_pro", "data"),
+        Input("icicle-plot-production", "clickData"),
+    ]
+)
+def update_is_selected_cat_info_pro(is_selected_cat, current_selected_cat, click_icicle):
+    return update_is_selected_category_info(is_selected_cat, current_selected_cat, click_icicle)
 
 
+def update_is_selected_category_info(is_selected_cat, current_selected_cat, click_icicle):
+    if is_selected_cat or click_icicle:
+        print(f'Category was selected')
+        clicked_the_same_cat = True if current_selected_cat == click_icicle["points"][0]["label"] else False
+        print(f'Was the same cat selected?: {clicked_the_same_cat}')
+        return not clicked_the_same_cat
+    return False
+
+@app.callback(
+    Output("is_selected_state_con", "data"),
+    [
+        State("is_selected_state_con", "data"),
+        State("selected_states_con", "data"),
+        Input("choropleth-map-consumption", "clickData"),
+    ]
+)
+def update_is_selected_map_info_con(is_selected_state, current_selected_state, click_map):
+    print('update_is_selected_map_info_con was called')
+    return update_is_selected_map_info(is_selected_state, current_selected_state, click_map)
+
+
+@app.callback(
+    Output("is_selected_state_pro", "data"),
+    [
+        State("is_selected_state_pro", "data"),
+        State("selected_states_pro", "data"),
+        Input("choropleth-map-production", "clickData"),
+    ]
+)
+def update_is_selected_map_info_pro(is_selected_state, current_selected_state, click_map):
+    return update_is_selected_map_info(is_selected_state, current_selected_state, click_map)
+
+
+def update_is_selected_map_info(is_selected_state, current_selected_state, click_map):
+    if is_selected_state or click_map:
+        print('State was selected!')
+        clicked_the_same_state = True if current_selected_state == click_map["points"][0]["text"] else False
+        print(f'Was the same state selected?: {clicked_the_same_state}')
+        return not clicked_the_same_state
+    return False
 
 @app.callback(
     Output("choropleth-map-production", "figure"),
     [
         Input("choropleth-map-production", "clickData"),
         Input("selected_category_overview_pro", "data"),
-        Input("selected_years_pro", "data")
+        Input("selected_years_pro", "data"),
+        Input("is_selected_state_pro", "data"),
+
      ]
 )
-def update_map_production(clickData, selected_category, selected_years):
-    return update_map(clickData, selected_category, selected_years)
+def update_map_production(clickData, selected_category, selected_years, is_selected_state_pro):
+    return update_map(clickData, selected_category, selected_years, is_selected_state_pro)
 
 
-def toggle_visibility_consumption_production(toggle_state):
-    if not toggle_state:
-        return {"flex": "0", "display": "flex"}, {"flex": "1", "display": "none"}
+def toggle_visibility_consumption_production(multiStateSwitchValue):
+    if multiStateSwitchValue == 'display_consumption':
+        return {"flex": "0", "display": "flex"}, {"flex": "0", "display": "none"}
+    if multiStateSwitchValue == 'display_production':
+        return {"flex": "0", "display": "none"}, {"flex": "0", "display": "flex"}
+    if multiStateSwitchValue == 'display_both':
+        return {"flex": "0", "display": "flex"}, {"flex": "0", "display": "flex"}
+###############
+@app.callback(
+    Output("diverging-bar-chart-consumption", "style"),
+    [
 
-    return {"flex": "0", "display": "flex"}, {"flex": "1", "display": "flex"}
+        Input("is_selected_state_con", "data"),
+        Input("is_selected_category_con", "data"),
+    ]
+)
+def show_diverging_plot_consumption(is_selected_state_con, is_selected_cat_con):
+    return show_component_when_category_and_state_selected(is_selected_state_con, is_selected_cat_con)
+
+@app.callback(
+    Output("diverging-bar-chart-production", "style"),
+    [
+
+        Input("is_selected_state_pro", "data"),
+        Input("is_selected_category_pro", "data"),
+    ]
+)
+def show_diverging_plot_consumption(is_selected_state_pro, is_selected_cat_pro):
+    return show_component_when_category_and_state_selected(is_selected_state_pro, is_selected_cat_pro)
+
+##########################
+@app.callback(
+    Output("stacked-area-chart-consumption", "style"),
+    [
+
+        Input("is_selected_state_con", "data"),
+        Input("is_selected_category_con", "data"),
+    ]
+)
+def show_stacked_plot_consumption(is_selected_state_con, is_selected_cat_con):
+    return show_component_when_category_and_state_selected(is_selected_state_con, is_selected_cat_con)
+
+@app.callback(
+    Output("stacked-area-chart-production", "style"),
+    [
+
+        Input("is_selected_state_pro", "data"),
+        Input("is_selected_category_pro", "data"),
+    ]
+)
+def show_stacked_plot_production(is_selected_state_pro, is_selected_cat_pro):
+    return show_component_when_category_and_state_selected(is_selected_state_pro, is_selected_cat_pro)
+
+
+def show_component_when_category_and_state_selected(clicked_map, clicked_icicle_plot):
+    if clicked_map and clicked_icicle_plot:
+        print('Its time to show diverging plot')
+        return {"display": "inline"}
+    else:
+        return { "display": "none"}
 
 
 @app.callback(
     [
-        Output("consumption-map-container", "style"),
-        Output("conditional-map-container", "style"),
+        Output("choropleth-map-consumption", "style"),
+        Output("choropleth-map-production", "style"),
     ],
-    Input("category-toggle", "on"),
+    Input("multi-state-switch", "value"),
 )
 def toggle_consumption_map_visibility(toggle_state):
     return toggle_visibility_consumption_production(toggle_state)
 
-
-@app.callback(
-    [
-        Output("stacked-area-chart-consumption", "style"),
-        Output("stacked-area-chart-production", "style"),
-    ],
-    Input("category-toggle", "on"),
-)
-def toggle_stacked_area_charts_visibility(toggle_state):
-    return toggle_visibility_consumption_production(toggle_state)
 
 
 @app.callback(
@@ -690,7 +793,7 @@ def toggle_stacked_area_charts_visibility(toggle_state):
         Output("icicle-plot-consumption", "style"),
         Output("icicle-plot-production", "style")
     ],
-    Input("category-toggle", "on"),
+    Input("multi-state-switch", "value"),
 )
 def toggle_icicle_plot_visibility(toggle_state):
     return toggle_visibility_consumption_production(toggle_state)

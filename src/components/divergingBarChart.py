@@ -20,6 +20,9 @@ from data import data as dt
 
 def DivergingBarChart(name):
     return html.Div(
-        [dcc.Graph(id=name)],
-        className="pretty_container",
+        [
+            dcc.Graph(
+                id=name,
+            )
+        ],
     )

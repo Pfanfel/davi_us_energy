@@ -37,5 +37,4 @@ def TimeSlider(start_year=1960, end_year=2021):
 
     return html.Div(
         children=[slider_container],
-        className="pretty_container",
     )

@@ -10,7 +10,6 @@ def StackedAreaChart_Percentage(name):
                 style={"width": "100%", "height": "500px"},
             )
         ],
-        className="pretty_container",
     )
 
 def StackedAreaChart(name):
@@ -21,6 +20,5 @@ def StackedAreaChart(name):
                 style={"width": "100%", "height": "500px"},
             )
         ],
-        className="pretty_container",
     )
 

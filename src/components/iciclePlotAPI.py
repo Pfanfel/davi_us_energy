@@ -37,5 +37,4 @@ def IciclePlot_API(data, plot_id):
                 style={"width": "100%", "height": "500px"},
             )
         ],
-        className="pretty_container",
     )

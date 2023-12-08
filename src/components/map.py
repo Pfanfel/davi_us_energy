@@ -4,7 +4,6 @@ import plotly.express as px
 import dash_daq as daq
 
 def USmap(dataframe, id, title):
-    colorscale = ["#f1a340", "#f7f7f7", "#998ec3"]
 
     fig = px.choropleth(
         dataframe,
@@ -26,7 +25,6 @@ def USmap(dataframe, id, title):
                 style={"width": "100%", "height": "500px"},
             )
         ],
-        className="pretty_container",
     )
 
 def USmapHEX_with_switch(nameMap, nameofASwitch):
@@ -48,9 +46,10 @@ def USmapHEX_with_switch(nameMap, nameofASwitch):
             dcc.Graph(
                 id=nameMap,
                 style={"width": "100%", "height": "500px"},
+
             )
+
         ],
-        className="pretty_container",
     )
 
 
@@ -63,5 +62,4 @@ def USmapHEX(name):
                 style={"width": "100%", "height": "500px"},
             )
         ],
-        className="pretty_container",
     )
