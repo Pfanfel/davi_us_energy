@@ -7,7 +7,7 @@ import dash_bootstrap_components as dbc
 app_name = "/davi_us_energy"
 
 
-# Navigation Bar fucntion
+# Navigation Bar function
 def Navbar():
     navbar = dbc.NavbarSimple(
         children=[

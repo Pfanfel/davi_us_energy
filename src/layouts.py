@@ -31,14 +31,15 @@ production_map_icicle_plot_container = HorizontalItemContainer(map_production,ic
 multi_state_switch = MultiStateSwitch('multi-state-switch')
 time_slider = TimeSlider()
 
-time_slider_checkboxes_container = HorizontalItemContainer_Custom(multi_state_switch, time_slider)
+time_slider_checkboxes_container = HorizontalItemContainer_Custom(multi_state_switch, time_slider, '15%', '85%')
 div_bar_chart_con = DivergingBarChart('diverging-bar-chart-consumption')
 div_bar_chart_pro = DivergingBarChart('diverging-bar-chart-production')
 
 stacked_area_chart_percentage_consumption = StackedAreaChart('stacked-area-chart-consumption')
 stacked_area_chart_percentage_production = StackedAreaChart('stacked-area-chart-production')
 
-
+stack_area_chart_div_chart_container_con = HorizontalItemContainer_Custom(div_bar_chart_con, stacked_area_chart_percentage_consumption, '40%', '60%')
+stack_area_chart_div_chart_container_pro = HorizontalItemContainer_Custom(div_bar_chart_pro, stacked_area_chart_percentage_production, '40%', '60%')
 #pick_consumption_or_production = VariablePickerAndToggle(icicle_plot_production, icicle_plot_consumption)
 
 is_selected_state_pro = dcc.Store(id="is_selected_state_pro", data=False)
@@ -64,3 +65,6 @@ selected_states_pro = dcc.Store(id='selected_states_pro', data='US')
 
 default_data_for_map_con = dcc.Store(id='data_for_map_con', data='EnergyPerCapita')
 #EnergyPerGDP
+
+selected_msn_codes_pro = dcc.Store(id='selected_msn_codes_pro', data=['TEPRB'])
+selected_msn_codes_con = dcc.Store(id='selected_msn_codes_con', data=['TETCB'])

@@ -9,10 +9,8 @@ from layouts import (
     is_selected_state_con,
     is_selected_category_con,
     time_slider_checkboxes_container,
-    div_bar_chart_con,
-    div_bar_chart_pro,
-    stacked_area_chart_percentage_consumption,
-    stacked_area_chart_percentage_production,
+    stack_area_chart_div_chart_container_con,
+    stack_area_chart_div_chart_container_pro,
     storage_consumption_overview,
     storage_consumption_detailed,
     storage_production_detailed,
@@ -25,7 +23,9 @@ from layouts import (
     selected_states_pro,
     default_data_for_map_con,
     consumption_map_icicle_plot_container,
-    production_map_icicle_plot_container
+    production_map_icicle_plot_container,
+    selected_msn_codes_pro,
+    selected_msn_codes_con
 )
 from pages import layout_about_energy_page, layout_about_dataset_page
 from app import app
@@ -53,13 +53,13 @@ def display_page(pathname):
     if pathname in [app_name, app_name + "/"]:
         return html.Div(
             [
+                selected_msn_codes_pro,
+                selected_msn_codes_con,
                 time_slider_checkboxes_container,
                 consumption_map_icicle_plot_container,
                 production_map_icicle_plot_container,
-                stacked_area_chart_percentage_consumption,
-                stacked_area_chart_percentage_production,
-                div_bar_chart_con,
-                div_bar_chart_pro,
+                stack_area_chart_div_chart_container_con,
+                stack_area_chart_div_chart_container_pro,
                 storage_consumption_overview,
                 storage_consumption_detailed,
                 storage_production_overview,
@@ -75,6 +75,7 @@ def display_page(pathname):
                 is_selected_category_pro,
                 is_selected_state_con,
                 is_selected_category_con,
+
 
             ],
             className="home",

@@ -7,7 +7,6 @@ def StackedAreaChart_Percentage(name):
         [
             dcc.Graph(
                 id=name,
-                style={"width": "100%", "height": "500px"},
             )
         ],
     )
@@ -17,7 +16,6 @@ def StackedAreaChart(name):
         [
             dcc.Graph(
                 id=name,
-                style={"width": "100%", "height": "500px"},
             )
         ],
     )

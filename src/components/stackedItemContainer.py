@@ -23,11 +23,11 @@ def HorizontalItemContainer(component1, component2):
             "verticalAlign": "top"
         },
     )
-def HorizontalItemContainer_Custom(component1, component2):
+def HorizontalItemContainer_Custom(component1, component2, spaceForFirst, spaceForSecond):
     return html.Div(
         children=[
-            html.Div(component1, style={'display': 'inline-block', 'width': '15%', "verticalAlign": "top"}),
-            html.Div(component2, style={'display': 'inline-block', 'width': '85%', "verticalAlign": "top"})
+            html.Div(component1, style={'display': 'inline-block', 'width': spaceForFirst, "verticalAlign": "top"}),
+            html.Div(component2, style={'display': 'inline-block', 'width': spaceForSecond, "verticalAlign": "top"})
         ],
         style={
             "display": "inline-block",
