@@ -2,7 +2,6 @@ from dash import html, dcc
 import plotly.graph_objects as go
 
 
-
 def IciclePlot_API(data, plot_id):
     # Docu for icicle:
     # https://plotly.com/python-api-reference/generated/plotly.graph_objects.Icicle.html
@@ -11,6 +10,8 @@ def IciclePlot_API(data, plot_id):
         go.Icicle(
             labels=data["labels"],
             parents=data["parents"],
+            marker_colors=data["marker_colors"],
+            # color_discrete_map={"total energy consumption": "lightgrey"},
         )
     )
 

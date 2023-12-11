@@ -69,6 +69,17 @@ production_hirarchie_icicle = {
         "production of wood and waste",
         "other production",
     ],
+    "marker_colors": [
+        "aliceblue",
+        "cyan",
+        "darkblue",
+        "dimgrey",
+        "lavenderblush",
+        "orange",
+        "pink",
+        "violet",
+        "plum",
+    ],
 }
 
 
@@ -114,6 +125,28 @@ consumption_hirarchie_icicle = {
         "consumption of wind energy",
         "consumption of interstate flow of electricity",
         "consumption of electricity net imports",
+    ],
+    "marker_colors": [
+        "#1f77b4",
+        "cyan",
+        "darkblue",
+        "dimgrey",
+        "lavenderblush",
+        "orange",
+        "pink",
+        "violet",
+        "plum",
+        "maroon",
+        "red",
+        "salmon",
+        "tomato",
+        "orangered",
+        "purple",
+        "gray",
+        "limegreen",
+        "khaki",
+        "lavender",
+        "limegreen",
     ],
 }
 
