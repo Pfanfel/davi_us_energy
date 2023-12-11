@@ -6,7 +6,8 @@ from helpers.filter import (
     filterByValues,
     get_all_categories_at_same_level,
     get_MSN_code_from_title,
-    get_all_children_of_category, get_title_from_MSN_code,
+    get_all_children_of_category,
+    get_title_from_MSN_code,
 )
 from data import data as dt
 import plotly.graph_objects as go
@@ -16,15 +17,15 @@ import statistics
 
 
 def calculate_mean_for_US_for(selected_category, selected_years):
-    print(f'Selected years {selected_years} ')
+    print(f"Selected years {selected_years} ")
     current_data_df = pd.DataFrame(dt.stads_df)
     current_data_df = filterData([selected_category], current_data_df, "MSN")
-    current_data_df = filterData(['US'], current_data_df, "StateCode")
+    current_data_df = filterData(["US"], current_data_df, "StateCode")
     if len(selected_years) == 1:
         single_year = selected_years[0]
         single_year = int(single_year)
         current_data_df = current_data_df[current_data_df["Year"] == single_year]
-        data_value = current_data_df['Data'].iloc[0]
+        data_value = current_data_df["Data"].iloc[0]
         return data_value / 50
 
     elif len(selected_years) == 2:
@@ -35,61 +36,71 @@ def calculate_mean_for_US_for(selected_category, selected_years):
         current_data_df = current_data_df[
             (current_data_df["Year"] >= min_year)
             & (current_data_df["Year"] <= max_year)
-            ]
-        data_values = current_data_df['Data'].tolist()
+        ]
+        data_values = current_data_df["Data"].tolist()
         return statistics.mean(data_values) / 50
 
 
 def calculate_relative_value_for(filtered_data, mean_US_val):
     # Check if filtered_data is empty or mean_US_val is None
     if filtered_data.empty:
-        print(f'FILTERED DATA IS EMPTY')
+        print(f"FILTERED DATA IS EMPTY")
         return None
     if mean_US_val is None:
-        print('mean_US_val is None')
+        print("mean_US_val is None")
         return None
-    if filtered_data['Data'].isnull().any():
-        filtered_data['Data'].fillna(0, inplace=True)
+    if filtered_data["Data"].isnull().any():
+        filtered_data["Data"].fillna(0, inplace=True)
 
     # Calculate the relative value
-    data = filtered_data['Data'].iloc[0]
-    print(f' Data value: {data}, mean US value {mean_US_val}')
+    data = filtered_data["Data"].iloc[0]
+    print(f" Data value: {data}, mean US value {mean_US_val}")
     relative_value = ((data - mean_US_val) / mean_US_val) * 100
-    print(f'Relative data {relative_value}')
+    print(f"Relative data {relative_value}")
     return relative_value
 
 
-def updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state, clickDataDifferentPlot,
-                                        clickDataThisPlot, selected_msn_codes, is_consumption):
-    print('updateStackedEnergyChart_percentage method called')
-    label_addition = 'Consumption' if is_consumption else 'Production'
+def updateStackedEnergyChart_percentage(
+    selected_cat,
+    selected_years,
+    selected_state,
+    clickDataDifferentPlot,
+    clickDataThisPlot,
+    selected_msn_codes,
+    is_consumption,
+):
+    print("updateStackedEnergyChart_percentage method called")
+    label_addition = "Consumption" if is_consumption else "Production"
     current_data_df = pd.DataFrame(dt.stads_df)
     tree = dt.consumption if is_consumption else dt.production
     years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
 
     children_of_cat = None
     if selected_cat is not None and selected_cat != []:
-        print(f'selected_cat is not none: {selected_cat}')
+        print(f"selected_cat is not none: {selected_cat}")
         children_of_cat = get_all_children_of_category(selected_cat[0], tree)
-        print(f'Children of selected cat: {children_of_cat}')
+        print(f"Children of selected cat: {children_of_cat}")
     if children_of_cat != [] and children_of_cat is not None:
         select_Categories = children_of_cat
     elif children_of_cat is None or children_of_cat == []:
         select_Categories = selected_cat
 
     state_code = selected_state if not None else states_def
-    print(f'updateStackedEnergyChart_percentage: Selected categories : {select_Categories}')
+    print(
+        f"updateStackedEnergyChart_percentage: Selected categories : {select_Categories}"
+    )
 
     current_data_df = filterByValues(select_Categories, current_data_df)
     current_data_df = filterData([state_code], current_data_df, "StateCode")
 
-    print(f'State codes:  {state_code}')
+    print(f"State codes:  {state_code}")
     fig = go.Figure()
 
     # Group by year and calculate sum for each energy type
-    current_data_df['label_text'] = current_data_df.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0],
-                                                          axis=1)
-    grouped_data = current_data_df.groupby(["Year", 'label_text']).sum().reset_index()
+    current_data_df["label_text"] = current_data_df.apply(
+        lambda row: get_title_from_MSN_code(row["MSN"], tree)[0], axis=1
+    )
+    grouped_data = current_data_df.groupby(["Year", "label_text"]).sum().reset_index()
 
     # Initialize an empty DataFrame for cumulative data
     cumulative_sum = pd.DataFrame()
@@ -99,27 +110,38 @@ def updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_s
     # Determine if any click event has occurred
     clicked = clickDataDifferentPlot is not None or clickDataThisPlot is not None
 
-    for energy_type in grouped_data['label_text'].unique():                     # here is different
-        energy_data = grouped_data[grouped_data['label_text'] == energy_type]   # here is different
+    for energy_type in grouped_data["label_text"].unique():  # here is different
+        energy_data = grouped_data[
+            grouped_data["label_text"] == energy_type
+        ]  # here is different
 
         if cumulative_sum.empty:
             cumulative_sum = energy_data
         else:
-            cumulative_sum = cumulative_sum.merge(energy_data, on='Year', how='left', suffixes=('', '_new'))
-            cumulative_sum['Data'] += cumulative_sum['Data_new'].fillna(0)
-            cumulative_sum.drop(columns='Data_new', inplace=True)
+            cumulative_sum = cumulative_sum.merge(
+                energy_data, on="Year", how="left", suffixes=("", "_new")
+            )
+            cumulative_sum["Data"] += cumulative_sum["Data_new"].fillna(0)
+            cumulative_sum.drop(columns="Data_new", inplace=True)
 
         # Determine if this category should be highlighted
-        highlight = any(msn_code in selected_msn_codes for msn_code in energy_data['MSN'].unique()) if clicked else True
+        highlight = (
+            any(
+                msn_code in selected_msn_codes
+                for msn_code in energy_data["MSN"].unique()
+            )
+            if clicked
+            else True
+        )
 
         # Set the fill color based on the highlight status
-        fill_color = 'rgba(128, 128, 128, 0.3)' if not highlight else None
+        fill_color = "rgba(128, 128, 128, 0.3)" if not highlight else None
 
         fig.add_trace(
             go.Scatter(
                 x=cumulative_sum["Year"],
                 y=cumulative_sum["Data"],
-                customdata=cumulative_sum['MSN'],
+                customdata=cumulative_sum["MSN"],
                 fill="tonexty",
                 mode="none",
                 name=energy_type,
@@ -130,9 +152,9 @@ def updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_s
     fig.update_layout(
         yaxis=dict(
             showgrid=True,
-            gridcolor='lightgrey',  # Sets the grid line color for the x-axis
+            gridcolor="lightgrey",  # Sets the grid line color for the x-axis
         ),
-        plot_bgcolor='white',  # Sets the plot background to white
+        plot_bgcolor="white",  # Sets the plot background to white
         xaxis_title="Year",
         yaxis_title="Data",
         title=f"{label_addition} Energy Data Over Time in Whole {dt.get_state_name(state_code)}",
@@ -182,15 +204,27 @@ def updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_s
         Input("selected_states_pro", "data"),
         State("diverging-bar-chart-production", "clickData"),
         State("stacked-area-chart-production", "clickData"),
-        Input("selected_msn_codes_pro", "data")
+        Input("selected_msn_codes_pro", "data"),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
-def update_stacked_energy_chart_percentage_production(selected_cat, selected_years, selected_state,
-                                                      clickDataDifferentPlot,
-                                                      clickDataThisPlot, selected_msn_codes):
-    return updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state,
-                                               clickDataDifferentPlot, clickDataThisPlot, selected_msn_codes, False)
+def update_stacked_energy_chart_percentage_production(
+    selected_cat,
+    selected_years,
+    selected_state,
+    clickDataDifferentPlot,
+    clickDataThisPlot,
+    selected_msn_codes,
+):
+    return updateStackedEnergyChart_percentage(
+        selected_cat,
+        selected_years,
+        selected_state,
+        clickDataDifferentPlot,
+        clickDataThisPlot,
+        selected_msn_codes,
+        False,
+    )
 
 
 @app.callback(
@@ -201,14 +235,27 @@ def update_stacked_energy_chart_percentage_production(selected_cat, selected_yea
         Input("selected_states_con", "data"),
         State("stacked-area-chart-consumption", "clickData"),
         State("diverging-bar-chart-consumption", "clickData"),
-        Input("selected_msn_codes_con", "data")
+        Input("selected_msn_codes_con", "data"),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
-def update_stacked_energy_chart_percentage_con(selected_cat, selected_years, selected_state, clickDataDifferentPlot,
-                                               clickDataThisPlot, selected_msn_codes):
-    return updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state,
-                                               clickDataDifferentPlot, clickDataThisPlot, selected_msn_codes, True)
+def update_stacked_energy_chart_percentage_con(
+    selected_cat,
+    selected_years,
+    selected_state,
+    clickDataDifferentPlot,
+    clickDataThisPlot,
+    selected_msn_codes,
+):
+    return updateStackedEnergyChart_percentage(
+        selected_cat,
+        selected_years,
+        selected_state,
+        clickDataDifferentPlot,
+        clickDataThisPlot,
+        selected_msn_codes,
+        True,
+    )
 
 
 @app.callback(
@@ -216,13 +263,16 @@ def update_stacked_energy_chart_percentage_con(selected_cat, selected_years, sel
     [
         State("selected_msn_codes_con", "data"),
         Input("stacked-area-chart-consumption", "clickData"),
-        Input("diverging-bar-chart-consumption", "clickData")
-
+        Input("diverging-bar-chart-consumption", "clickData"),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
-def update_state_of_selected_MSN_codes_con(selected_MSN_codes, clickData_stackChart, clickData_DivChart):
-    return update_state_of_selected_MSN_codes(selected_MSN_codes, clickData_stackChart, clickData_DivChart)
+def update_state_of_selected_MSN_codes_con(
+    selected_MSN_codes, clickData_stackChart, clickData_DivChart
+):
+    return update_state_of_selected_MSN_codes(
+        selected_MSN_codes, clickData_stackChart, clickData_DivChart
+    )
 
 
 @app.callback(
@@ -230,45 +280,61 @@ def update_state_of_selected_MSN_codes_con(selected_MSN_codes, clickData_stackCh
     [
         State("selected_msn_codes_pro", "data"),
         Input("stacked-area-chart-production", "clickData"),
-        Input("diverging-bar-chart-production", "clickData")
-
+        Input("diverging-bar-chart-production", "clickData"),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
-def update_state_of_selected_MSN_codes_pro(selected_MSN_codes, clickData_stackChart, clickData_DivChart):
-    return update_state_of_selected_MSN_codes(selected_MSN_codes, clickData_stackChart, clickData_DivChart)
+def update_state_of_selected_MSN_codes_pro(
+    selected_MSN_codes, clickData_stackChart, clickData_DivChart
+):
+    return update_state_of_selected_MSN_codes(
+        selected_MSN_codes, clickData_stackChart, clickData_DivChart
+    )
 
 
-def update_state_of_selected_MSN_codes(selected_msn_codes, clickData_stackChart, clickData_DivChart):
-    print(f'Initial MSN codes: {selected_msn_codes}')
+def update_state_of_selected_MSN_codes(
+    selected_msn_codes, clickData_stackChart, clickData_DivChart
+):
+    print(f"Initial MSN codes: {selected_msn_codes}")
 
     if clickData_stackChart:
-        clicked_msn_code = clickData_stackChart['points'][0]['customdata']
-        print(f'Clicked MSN (Stack Chart): {clicked_msn_code}')
+        clicked_msn_code = clickData_stackChart["points"][0]["customdata"]
+        print(f"Clicked MSN (Stack Chart): {clicked_msn_code}")
         # Toggle selection
         if clicked_msn_code in selected_msn_codes:
             selected_msn_codes.remove(clicked_msn_code)  # Deselect
-            print(f'Removed {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
+            print(
+                f"Removed {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}"
+            )
         else:
             selected_msn_codes.append(clicked_msn_code)  # Select
-            print(f'Added {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
+            print(f"Added {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}")
 
     if clickData_DivChart:
-        clicked_msn_code = clickData_DivChart['points'][0]['customdata']
-        print(f'Clicked MSN (Div Chart): {clicked_msn_code}')
+        clicked_msn_code = clickData_DivChart["points"][0]["customdata"]
+        print(f"Clicked MSN (Div Chart): {clicked_msn_code}")
         # Toggle selection
         if clicked_msn_code in selected_msn_codes:
             selected_msn_codes.remove(clicked_msn_code)  # Deselect
-            print(f'Removed {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
+            print(
+                f"Removed {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}"
+            )
         else:
             selected_msn_codes.append(clicked_msn_code)  # Select
-            print(f'Added {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
+            print(f"Added {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}")
 
     return selected_msn_codes
 
 
-def update_diverging_bar_chart(selected_cat, selected_state, selected_years, clickDataDifferentPlot, clickDataThisPlot,
-                               selected_msn_codes, is_consumption):
+def update_diverging_bar_chart(
+    selected_cat,
+    selected_state,
+    selected_years,
+    clickDataDifferentPlot,
+    clickDataThisPlot,
+    selected_msn_codes,
+    is_consumption,
+):
     current_data_df = pd.DataFrame(dt.stads_df)
     tree = dt.consumption if is_consumption else dt.production
 
@@ -282,31 +348,40 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
     current_data_df = filterByValues(select_Categories, current_data_df)
     current_data_df = filterData([selected_state], current_data_df, "StateCode")
     current_data_df = filterByValues(selected_years, current_data_df)
-    current_data_df['label_text'] = current_data_df.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0],
-                                                          axis=1)
+    current_data_df["label_text"] = current_data_df.apply(
+        lambda row: get_title_from_MSN_code(row["MSN"], tree)[0], axis=1
+    )
 
     # Calculate relative values for each category
-    for category in current_data_df['MSN'].unique():
+    for category in current_data_df["MSN"].unique():
         mean_US_val = calculate_mean_for_US_for(category, selected_years)
-        filtered_data = current_data_df[current_data_df['MSN'] == category]
+        filtered_data = current_data_df[current_data_df["MSN"] == category]
         relative_values = calculate_relative_value_for(filtered_data, mean_US_val)
-        current_data_df.loc[current_data_df['MSN'] == category, 'RelativeData'] = relative_values
+        current_data_df.loc[
+            current_data_df["MSN"] == category, "RelativeData"
+        ] = relative_values
 
     # Create the bar plot
     bar = go.Bar(
-        x=current_data_df['RelativeData'],
-        y=current_data_df['label_text'],
+        x=current_data_df["RelativeData"],
+        y=current_data_df["label_text"],
         orientation="h",
-        customdata=current_data_df['MSN'],
-        marker=dict(color=current_data_df['RelativeData'].apply(lambda x: 'blue' if x >= 0 else 'red')),
-        hovertemplate="Category: %{y}<br>Year: " + str(selected_years) + "<br>Relative Value: %{x}<extra></extra>",
+        customdata=current_data_df["MSN"],
+        marker=dict(
+            color=current_data_df["RelativeData"].apply(
+                lambda x: "#f1a340" if x >= 0 else "#998ec3"
+            )
+        ),
+        hovertemplate="Category: %{y}<br>Year: "
+        + str(selected_years)
+        + "<br>Relative Value: {x}%<extra></extra>",
     )
 
     fig = go.Figure(data=bar)
 
     # Update layout
     fig.update_layout(
-        plot_bgcolor='white',
+        plot_bgcolor="white",
         barmode="relative",
         yaxis_autorange="reversed",
         bargap=0.01,
@@ -314,30 +389,30 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
         legend_x=-0.05,
         legend_y=1.1,
         xaxis=dict(
-            title='Relative Data (%)',
+            title="Relative Data (%)",
             zeroline=True,
             zerolinewidth=2,
-            zerolinecolor='black',
+            zerolinecolor="black",
             showgrid=True,
-            gridcolor='lightgrey',
+            gridcolor="lightgrey",
         ),
-        yaxis=dict(
-            title='Category'
-        ),
-        title=f"Energy Data relative to the mean value for US for {dt.get_state_name(selected_state)}",
+        yaxis=dict(title="Category"),
+        title=f"Selected categories relative to the mean value of all US states for {dt.get_state_name(selected_state)}",
     )
 
     # Centering the diverging bars
-    max_abs_value = current_data_df['RelativeData'].abs().max()
+    max_abs_value = current_data_df["RelativeData"].abs().max()
     fig.update_xaxes(range=[-max_abs_value, max_abs_value])
 
     if clickDataDifferentPlot or clickDataThisPlot:
-        bar_colors = ['gray'] * len(current_data_df)
+        bar_colors = ["gray"] * len(current_data_df)
         # Highlight the selected bars
         counter = 0  # Initialize a counter to keep track of position in bar_colors list
         for idx, row in current_data_df.iterrows():
-            if row['MSN'] in selected_msn_codes:
-                bar_colors[counter] = 'blue' if row['RelativeData'] >= 0 else 'red'
+            if row["MSN"] in selected_msn_codes:
+                bar_colors[counter] = (
+                    "#f1a340" if row["RelativeData"] >= 0 else "#998ec3"
+                )
             counter += 1  # Increment the counter for each row
 
         # Update the bar trace with the new colors
@@ -354,14 +429,27 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
         Input("selected_years_con", "data"),
         State("stacked-area-chart-consumption", "clickData"),
         State("diverging-bar-chart-consumption", "clickData"),
-        Input("selected_msn_codes_con", "data")
+        Input("selected_msn_codes_con", "data"),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
-def update_diverging_bar_chart_con(selected_category, selected_state, selected_year, clickDataDifferentPlot,
-                                   clickDataThisPlot, selected_msn_codes):
-    return update_diverging_bar_chart(selected_category, selected_state, selected_year, clickDataDifferentPlot,
-                                      clickDataThisPlot, selected_msn_codes, True)
+def update_diverging_bar_chart_con(
+    selected_category,
+    selected_state,
+    selected_year,
+    clickDataDifferentPlot,
+    clickDataThisPlot,
+    selected_msn_codes,
+):
+    return update_diverging_bar_chart(
+        selected_category,
+        selected_state,
+        selected_year,
+        clickDataDifferentPlot,
+        clickDataThisPlot,
+        selected_msn_codes,
+        True,
+    )
 
 
 @app.callback(
@@ -372,14 +460,27 @@ def update_diverging_bar_chart_con(selected_category, selected_state, selected_y
         Input("selected_years_pro", "data"),
         State("stacked-area-chart-production", "clickData"),
         State("diverging-bar-chart-production", "clickData"),
-        Input("selected_msn_codes_pro", "data")
+        Input("selected_msn_codes_pro", "data"),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
-def update_diverging_bar_chart_prod(selected_cat, selected_state, selected_years, clickDataDifferentPlot,
-                                    clickDataThisPlot, selected_msn_codes):
-    return update_diverging_bar_chart(selected_cat, selected_state, selected_years, clickDataDifferentPlot,
-                                      clickDataThisPlot, selected_msn_codes, False)
+def update_diverging_bar_chart_prod(
+    selected_cat,
+    selected_state,
+    selected_years,
+    clickDataDifferentPlot,
+    clickDataThisPlot,
+    selected_msn_codes,
+):
+    return update_diverging_bar_chart(
+        selected_cat,
+        selected_state,
+        selected_years,
+        clickDataDifferentPlot,
+        clickDataThisPlot,
+        selected_msn_codes,
+        False,
+    )
 
 
 def get_current_data(data_to_update):
@@ -392,24 +493,39 @@ def get_current_data(data_to_update):
 
 def get_unfiltered_years_cats_states(is_consumption):
     if is_consumption:
-        return [2021], ['TETCB'], 'US'
+        return [2021], ["TETCB"], "US"
     else:
-        return [2021], ['TEPRB'], 'US'
+        return [2021], ["TEPRB"], "US"
 
 
 # CALLBACK FOR DATA FILTERING FOR OVERVIEW (MAP)
-def update_overview_data_storage(current_selected_category, current_selected_state, selected_cat, time_range,
-                                 click_data_map, is_consumption):
+def update_overview_data_storage(
+    current_selected_category,
+    current_selected_state,
+    selected_cat,
+    time_range,
+    click_data_map,
+    is_consumption,
+):
     current_data_df_overview = pd.DataFrame(dt.stads_df)
     years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
     tree = dt.consumption if is_consumption else dt.production
     if not selected_cat and not time_range and not click_data_map:
-        return current_data_df_overview.to_dict("records"), years_def, cats_def, states_def
+        return (
+            current_data_df_overview.to_dict("records"),
+            years_def,
+            cats_def,
+            states_def,
+        )
 
     if selected_cat:
-        select_Category = get_MSN_code_from_title(selected_cat["points"][0]["label"], tree)
+        select_Category = get_MSN_code_from_title(
+            selected_cat["points"][0]["label"], tree
+        )
 
-        print(f'Cat was selected, update_overview_data_storage: Selected category: {select_Category}')
+        print(
+            f"Cat was selected, update_overview_data_storage: Selected category: {select_Category}"
+        )
     else:
         select_Category = current_selected_category if not None else cats_def
 
@@ -421,7 +537,9 @@ def update_overview_data_storage(current_selected_category, current_selected_sta
     if len(time_range) == 1:
         single_year = time_range[0]
         single_year = int(single_year)
-        current_data_df_overview = current_data_df_overview[current_data_df_overview["Year"] == single_year]
+        current_data_df_overview = current_data_df_overview[
+            current_data_df_overview["Year"] == single_year
+        ]
 
     elif len(time_range) == 2:
         min_year, max_year = time_range
@@ -431,16 +549,23 @@ def update_overview_data_storage(current_selected_category, current_selected_sta
         current_data_df_overview = current_data_df_overview[
             (current_data_df_overview["Year"] >= min_year)
             & (current_data_df_overview["Year"] <= max_year)
-            ]
+        ]
 
     current_data_df_overview = filterByValues(select_Category, current_data_df_overview)
-    current_data_df_overview = filterData([state_code], current_data_df_overview, "StateCode")
+    current_data_df_overview = filterData(
+        [state_code], current_data_df_overview, "StateCode"
+    )
 
     if current_data_df_overview.empty:
         return dt.stads_df.to_dict("records"), time_range, select_Category, state_code
 
-    print(f'Selected category from the filtering overview {select_Category}')
-    return current_data_df_overview.to_dict("records"), time_range, select_Category, state_code
+    print(f"Selected category from the filtering overview {select_Category}")
+    return (
+        current_data_df_overview.to_dict("records"),
+        time_range,
+        select_Category,
+        state_code,
+    )
 
 
 @app.callback(
@@ -456,11 +581,24 @@ def update_overview_data_storage(current_selected_category, current_selected_sta
         Input("icicle-plot-consumption", "clickData"),
         Input("year-slider", "value"),
         Input("choropleth-map-consumption", "clickData"),
-    ], prevent_initial_call=True)
-def update_consumption_overview_data_storage(current_selected_category, current_selected_state,
-                                             selected_consumption, time_range, click_data_consumption_map):
-    return update_overview_data_storage(current_selected_category, current_selected_state,
-                                        selected_consumption, time_range, click_data_consumption_map, True)
+    ],
+    prevent_initial_call=True,
+)
+def update_consumption_overview_data_storage(
+    current_selected_category,
+    current_selected_state,
+    selected_consumption,
+    time_range,
+    click_data_consumption_map,
+):
+    return update_overview_data_storage(
+        current_selected_category,
+        current_selected_state,
+        selected_consumption,
+        time_range,
+        click_data_consumption_map,
+        True,
+    )
 
 
 @app.callback(
@@ -468,7 +606,7 @@ def update_consumption_overview_data_storage(current_selected_category, current_
         Output("production_overview_data_storage", "data"),
         Output("selected_years_pro", "data"),
         Output("selected_category_overview_pro", "data"),
-        Output("selected_states_pro", "data")
+        Output("selected_states_pro", "data"),
     ],
     [
         State("selected_category_overview_pro", "data"),
@@ -476,12 +614,24 @@ def update_consumption_overview_data_storage(current_selected_category, current_
         Input("icicle-plot-production", "clickData"),
         Input("year-slider", "value"),
         Input("choropleth-map-production", "clickData"),
-    ], prevent_initial_call=True)
-def update_production_overview_data_storage(current_selected_category, current_selected_state,
-                                            selected_production, time_range, click_data_production_map):
-    return update_overview_data_storage(current_selected_category, current_selected_state,
-                                        selected_production,
-                                        time_range, click_data_production_map, False)
+    ],
+    prevent_initial_call=True,
+)
+def update_production_overview_data_storage(
+    current_selected_category,
+    current_selected_state,
+    selected_production,
+    time_range,
+    click_data_production_map,
+):
+    return update_overview_data_storage(
+        current_selected_category,
+        current_selected_state,
+        selected_production,
+        time_range,
+        click_data_production_map,
+        False,
+    )
 
 
 # CALLBACK FOE DETAILED DAATA STORAGE FOR CONSUMPTION
@@ -494,14 +644,23 @@ def update_production_overview_data_storage(current_selected_category, current_s
         Input("year-slider", "value"),
         Input("choropleth-map-consumption", "clickData"),
     ],
-    prevent_initial_call=True)
-def update_consumption_detailed_data_storage(current_selected_category,
-                                             current_selected_state, selected_consumption,
-                                             time_range, click_data_consumption_map):
-    return update_detailed_data_storage(current_selected_category,
-                                        current_selected_state,
-                                        selected_consumption, time_range,
-                                        click_data_consumption_map, True)
+    prevent_initial_call=True,
+)
+def update_consumption_detailed_data_storage(
+    current_selected_category,
+    current_selected_state,
+    selected_consumption,
+    time_range,
+    click_data_consumption_map,
+):
+    return update_detailed_data_storage(
+        current_selected_category,
+        current_selected_state,
+        selected_consumption,
+        time_range,
+        click_data_consumption_map,
+        True,
+    )
 
 
 @app.callback(
@@ -513,19 +672,33 @@ def update_consumption_detailed_data_storage(current_selected_category,
         Input("year-slider", "value"),
         Input("choropleth-map-production", "clickData"),
     ],
-    prevent_initial_call=True)
-def update_production_detailed_data_storage(current_selected_category,
-                                            current_selected_state,
-                                            selected_production, time_range, click_data_production_map):
-    return update_detailed_data_storage(current_selected_category,
-                                        current_selected_state,
-                                        selected_production, time_range,
-                                        click_data_production_map, False)
+    prevent_initial_call=True,
+)
+def update_production_detailed_data_storage(
+    current_selected_category,
+    current_selected_state,
+    selected_production,
+    time_range,
+    click_data_production_map,
+):
+    return update_detailed_data_storage(
+        current_selected_category,
+        current_selected_state,
+        selected_production,
+        time_range,
+        click_data_production_map,
+        False,
+    )
 
 
-def update_detailed_data_storage(current_selected_category, current_selected_state,
-                                 selected_cat, time_range,
-                                 click_data_map, is_consumption):
+def update_detailed_data_storage(
+    current_selected_category,
+    current_selected_state,
+    selected_cat,
+    time_range,
+    click_data_map,
+    is_consumption,
+):
     current_data_df = pd.DataFrame(dt.stads_df)
     tree = dt.consumption if is_consumption else dt.production
     years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
@@ -535,7 +708,9 @@ def update_detailed_data_storage(current_selected_category, current_selected_sta
 
     children_of_cat = None
     if selected_cat:
-        children_of_cat = get_all_children_of_category(selected_cat["points"][0]["label"], tree)
+        children_of_cat = get_all_children_of_category(
+            selected_cat["points"][0]["label"], tree
+        )
         print(children_of_cat)
     if children_of_cat is not None:
         select_Category = children_of_cat
@@ -560,7 +735,7 @@ def update_detailed_data_storage(current_selected_category, current_selected_sta
         current_data_df = current_data_df[
             (current_data_df["Year"] >= min_year)
             & (current_data_df["Year"] <= max_year)
-            ]
+        ]
 
     current_data_df = filterByValues(select_Category, current_data_df)
     current_data_df = filterData([state_code], current_data_df, "StateCode")
@@ -610,36 +785,41 @@ def setLabel_categories_switch(on):
 
 
 @app.callback(
-    [
-        Output("data_for_map_con", "data"),
-        Output("consumption-map-switch", "label")
-    ],
+    [Output("data_for_map_con", "data"), Output("consumption-map-switch", "label")],
     Input("consumption-map-switch", "on"),
 )
 def update_map_switch(on):
     if on:
-        return 'EnergyPerGDP', "Consumption per GDP"
+        return "EnergyPerGDP", "Consumption per GDP"
     else:
-        return 'EnergyPerCapita', "Consumption per Capita"
+        return "EnergyPerCapita", "Consumption per Capita"
 
 
-def update_map(clickData, selected_category, selected_years, is_selected_state, columnNameData_to_use="Data"):
+def update_map(
+    clickData,
+    selected_category,
+    selected_years,
+    is_selected_state,
+    columnNameData_to_use="Data",
+):
     geoData = dt.geoData
     tree = dt.consumption if columnNameData_to_use != "Data" else dt.production
     title_cat = get_title_from_MSN_code(selected_category[0], tree)
-    print(f'Title category {title_cat}, column data to use: {columnNameData_to_use}')
+    print(f"Title category {title_cat}, column data to use: {columnNameData_to_use}")
     ##FILTERING
     current = pd.DataFrame(dt.stads_df)
     current = filterData(selected_category, current, "MSN")
     current = filterData(selected_years, current, "Year")
 
-    merged_data = geoData.merge(current, left_on="iso3166_2", right_on='StateCode')
+    merged_data = geoData.merge(current, left_on="iso3166_2", right_on="StateCode")
     merged_data["centroid"] = merged_data["geometry"].apply(lambda x: x.centroid)
 
-    merged_data['hover_text'] = merged_data.apply(lambda row: f"State Code: {row['StateCode']}\n"
-                                                              f"\nFull State Name: {row['full_state_code']}\n"
-                                                              f"\n{title_cat[0]}: {row[columnNameData_to_use]} BTU",
-                                                  axis=1)
+    merged_data["hover_text"] = merged_data.apply(
+        lambda row: f"State Code: {row['StateCode']}\n"
+        f"\nFull State Name: {row['full_state_code']}\n"
+        f"\n{title_cat[0]}: {row[columnNameData_to_use]} BTU",
+        axis=1,
+    )
 
     annotations_trace = go.Scattermapbox(
         lon=merged_data["centroid"].apply(lambda x: x.x),
@@ -679,17 +859,22 @@ def update_map(clickData, selected_category, selected_years, is_selected_state, 
             print("Selected State:", selected_state)
 
             # Update the opacity for the selected hexagon
+            # print(f"dir: go.choroplethmapbox.Marker: {dir(go.choroplethmapbox.Marker)}")
             fig.update_traces(
                 marker=dict(
+                    # line=dict(color="blue"),
                     opacity=[
-                        1.0 if state_code == selected_state else 0.3
+                        0.7 if state_code == selected_state else 0.2
                         for state_code in merged_data["StateCode"]
                     ],
                 ),
             )
     else:
-        min_range, max_range = merged_data[columnNameData_to_use].min(), merged_data[columnNameData_to_use].max()
-        print(f'min: {min_range} max: {max_range}')
+        min_range, max_range = (
+            merged_data[columnNameData_to_use].min(),
+            merged_data[columnNameData_to_use].max(),
+        )
+        print(f"min: {min_range} max: {max_range}")
         fig = px.choropleth_mapbox(
             merged_data,
             geojson=merged_data.geometry,
@@ -697,7 +882,7 @@ def update_map(clickData, selected_category, selected_years, is_selected_state, 
             mapbox_style="white-bg",
             color=columnNameData_to_use,
             range_color=(min_range, max_range),
-            color_continuous_scale='Viridis',
+            color_continuous_scale="Blues",
             center={"lat": 37.0902, "lon": -95.7129},
             zoom=2.5,
         )
@@ -714,7 +899,6 @@ def update_map(clickData, selected_category, selected_years, is_selected_state, 
     # Update the layout of the entire figure
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
-
     )
     return fig
 
@@ -725,10 +909,14 @@ def update_map(clickData, selected_category, selected_years, is_selected_state, 
         State("is_selected_category_con", "data"),
         State("selected_category_overview_con", "data"),
         Input("icicle-plot-consumption", "clickData"),
-    ]
+    ],
 )
-def update_is_selected_cat_info_con(is_selected_cat, current_selected_cat, click_icicle):
-    return update_is_selected_category_info(is_selected_cat, current_selected_cat, click_icicle)
+def update_is_selected_cat_info_con(
+    is_selected_cat, current_selected_cat, click_icicle
+):
+    return update_is_selected_category_info(
+        is_selected_cat, current_selected_cat, click_icicle
+    )
 
 
 @app.callback(
@@ -737,17 +925,27 @@ def update_is_selected_cat_info_con(is_selected_cat, current_selected_cat, click
         State("is_selected_category_pro", "data"),
         State("selected_category_overview_pro", "data"),
         Input("icicle-plot-production", "clickData"),
-    ]
+    ],
 )
-def update_is_selected_cat_info_pro(is_selected_cat, current_selected_cat, click_icicle):
-    return update_is_selected_category_info(is_selected_cat, current_selected_cat, click_icicle)
+def update_is_selected_cat_info_pro(
+    is_selected_cat, current_selected_cat, click_icicle
+):
+    return update_is_selected_category_info(
+        is_selected_cat, current_selected_cat, click_icicle
+    )
 
 
-def update_is_selected_category_info(is_selected_cat, current_selected_cat, click_icicle):
+def update_is_selected_category_info(
+    is_selected_cat, current_selected_cat, click_icicle
+):
     if is_selected_cat or click_icicle:
-        print(f'Category was selected')
-        clicked_the_same_cat = True if current_selected_cat == click_icicle["points"][0]["label"] else False
-        print(f'Was the same cat selected?: {clicked_the_same_cat}')
+        print(f"Category was selected")
+        clicked_the_same_cat = (
+            True
+            if current_selected_cat == click_icicle["points"][0]["label"]
+            else False
+        )
+        print(f"Was the same cat selected?: {clicked_the_same_cat}")
         return not clicked_the_same_cat
     return False
 
@@ -758,11 +956,15 @@ def update_is_selected_category_info(is_selected_cat, current_selected_cat, clic
         State("is_selected_state_con", "data"),
         State("selected_states_con", "data"),
         Input("choropleth-map-consumption", "clickData"),
-    ]
+    ],
 )
-def update_is_selected_map_info_con(is_selected_state, current_selected_state, click_map):
-    print('update_is_selected_map_info_con was called')
-    return update_is_selected_map_info(is_selected_state, current_selected_state, click_map)
+def update_is_selected_map_info_con(
+    is_selected_state, current_selected_state, click_map
+):
+    print("update_is_selected_map_info_con was called")
+    return update_is_selected_map_info(
+        is_selected_state, current_selected_state, click_map
+    )
 
 
 @app.callback(
@@ -771,17 +973,23 @@ def update_is_selected_map_info_con(is_selected_state, current_selected_state, c
         State("is_selected_state_pro", "data"),
         State("selected_states_pro", "data"),
         Input("choropleth-map-production", "clickData"),
-    ]
+    ],
 )
-def update_is_selected_map_info_pro(is_selected_state, current_selected_state, click_map):
-    return update_is_selected_map_info(is_selected_state, current_selected_state, click_map)
+def update_is_selected_map_info_pro(
+    is_selected_state, current_selected_state, click_map
+):
+    return update_is_selected_map_info(
+        is_selected_state, current_selected_state, click_map
+    )
 
 
 def update_is_selected_map_info(is_selected_state, current_selected_state, click_map):
     if is_selected_state or click_map:
-        print('State was selected!')
-        clicked_the_same_state = True if current_selected_state == click_map["points"][0]["text"] else False
-        print(f'Was the same state selected?: {clicked_the_same_state}')
+        print("State was selected!")
+        clicked_the_same_state = (
+            True if current_selected_state == click_map["points"][0]["text"] else False
+        )
+        print(f"Was the same state selected?: {clicked_the_same_state}")
         return not clicked_the_same_state
     return False
 
@@ -794,10 +1002,14 @@ def update_is_selected_map_info(is_selected_state, current_selected_state, click
         Input("selected_years_con", "data"),
         Input("is_selected_state_con", "data"),
         Input("data_for_map_con", "data"),
-    ]
+    ],
 )
-def update_map_consumption(clickData, selected_category, selected_years, is_selected_state, data_to_use):
-    return update_map(clickData, selected_category, selected_years, is_selected_state, data_to_use)
+def update_map_consumption(
+    clickData, selected_category, selected_years, is_selected_state, data_to_use
+):
+    return update_map(
+        clickData, selected_category, selected_years, is_selected_state, data_to_use
+    )
 
 
 @app.callback(
@@ -806,20 +1018,23 @@ def update_map_consumption(clickData, selected_category, selected_years, is_sele
         Input("choropleth-map-production", "clickData"),
         Input("selected_category_overview_pro", "data"),
         Input("selected_years_pro", "data"),
-        Input("is_selected_state_pro", "data")
-
-    ]
+        Input("is_selected_state_pro", "data"),
+    ],
 )
-def update_map_production(clickData, selected_category, selected_years, is_selected_state_pro):
-    return update_map(clickData, selected_category, selected_years, is_selected_state_pro)
+def update_map_production(
+    clickData, selected_category, selected_years, is_selected_state_pro
+):
+    return update_map(
+        clickData, selected_category, selected_years, is_selected_state_pro
+    )
 
 
 def toggle_visibility_consumption_production(multiStateSwitchValue):
-    if multiStateSwitchValue == 'display_consumption':
+    if multiStateSwitchValue == "display_consumption":
         return {"flex": "0", "display": "flex"}, {"flex": "0", "display": "none"}
-    if multiStateSwitchValue == 'display_production':
+    if multiStateSwitchValue == "display_production":
         return {"flex": "0", "display": "none"}, {"flex": "0", "display": "flex"}
-    if multiStateSwitchValue == 'display_both':
+    if multiStateSwitchValue == "display_both":
         return {"flex": "0", "display": "flex"}, {"flex": "0", "display": "flex"}
 
 
@@ -827,55 +1042,59 @@ def toggle_visibility_consumption_production(multiStateSwitchValue):
 @app.callback(
     Output("diverging-bar-chart-consumption", "style"),
     [
-
         Input("is_selected_state_con", "data"),
         Input("is_selected_category_con", "data"),
-    ]
+    ],
 )
 def show_diverging_plot_consumption(is_selected_state_con, is_selected_cat_con):
-    return show_component_when_category_and_state_selected(is_selected_state_con, is_selected_cat_con)
+    return show_component_when_category_and_state_selected(
+        is_selected_state_con, is_selected_cat_con
+    )
 
 
 @app.callback(
     Output("diverging-bar-chart-production", "style"),
     [
-
         Input("is_selected_state_pro", "data"),
         Input("is_selected_category_pro", "data"),
-    ]
+    ],
 )
 def show_diverging_plot_consumption(is_selected_state_pro, is_selected_cat_pro):
-    return show_component_when_category_and_state_selected(is_selected_state_pro, is_selected_cat_pro)
+    return show_component_when_category_and_state_selected(
+        is_selected_state_pro, is_selected_cat_pro
+    )
 
 
 ##########################
 @app.callback(
     Output("stacked-area-chart-consumption", "style"),
     [
-
         Input("is_selected_state_con", "data"),
         Input("is_selected_category_con", "data"),
-    ]
+    ],
 )
 def show_stacked_plot_consumption(is_selected_state_con, is_selected_cat_con):
-    return show_component_when_category_and_state_selected(is_selected_state_con, is_selected_cat_con)
+    return show_component_when_category_and_state_selected(
+        is_selected_state_con, is_selected_cat_con
+    )
 
 
 @app.callback(
     Output("stacked-area-chart-production", "style"),
     [
-
         Input("is_selected_state_pro", "data"),
         Input("is_selected_category_pro", "data"),
-    ]
+    ],
 )
 def show_stacked_plot_production(is_selected_state_pro, is_selected_cat_pro):
-    return show_component_when_category_and_state_selected(is_selected_state_pro, is_selected_cat_pro)
+    return show_component_when_category_and_state_selected(
+        is_selected_state_pro, is_selected_cat_pro
+    )
 
 
 def show_component_when_category_and_state_selected(clicked_map, clicked_icicle_plot):
     if clicked_map and clicked_icicle_plot:
-        print('Its time to show diverging plot')
+        print("Its time to show diverging plot")
         return {"display": "inline"}
     else:
         return {"display": "none"}
@@ -895,7 +1114,7 @@ def toggle_consumption_map_visibility(toggle_state):
 @app.callback(
     [
         Output("icicle-plot-consumption", "style"),
-        Output("icicle-plot-production", "style")
+        Output("icicle-plot-production", "style"),
     ],
     Input("multi-state-switch", "value"),
 )
