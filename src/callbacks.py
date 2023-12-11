@@ -864,7 +864,7 @@ def update_map(
                 marker=dict(
                     # line=dict(color="blue"),
                     opacity=[
-                        0.7 if state_code == selected_state else 0.2
+                        1.0 if state_code == selected_state else 0.1
                         for state_code in merged_data["StateCode"]
                     ],
                 ),
@@ -882,7 +882,7 @@ def update_map(
             mapbox_style="white-bg",
             color=columnNameData_to_use,
             range_color=(min_range, max_range),
-            color_continuous_scale="Blues",
+            color_continuous_scale="Blugrn",
             center={"lat": 37.0902, "lon": -95.7129},
             zoom=2.5,
         )
@@ -900,6 +900,7 @@ def update_map(
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
     )
+
     return fig
 
 
