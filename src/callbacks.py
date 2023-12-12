@@ -305,7 +305,8 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
         y=current_data_df['label_text'],
         orientation="h",
         customdata=current_data_df['MSN'],
-        marker=dict(color=current_data_df['RelativeData'].apply(lambda x: 'blue' if x >= 0 else 'red')),
+        marker=dict(color=current_data_df['RelativeData']
+                    .apply(lambda x: "#f1a340" if x >= 0 else "#998ec3")),
         hovertemplate="Category: %{y}<br>Year: " + str(selected_years) + "<br>Relative Value: %{x}<extra></extra>",
     )
 
