@@ -66,5 +66,5 @@ selected_states_pro = dcc.Store(id='selected_states_pro', data='US')
 default_data_for_map_con = dcc.Store(id='data_for_map_con', data='EnergyPerCapita')
 #EnergyPerGDP
 
-selected_msn_codes_pro = dcc.Store(id='selected_msn_codes_pro', data=['TEPRB'])
-selected_msn_codes_con = dcc.Store(id='selected_msn_codes_con', data=['TETCB'])
+selected_msn_codes_pro = dcc.Store(id='selected_msn_codes_pro', data=[])
+selected_msn_codes_con = dcc.Store(id='selected_msn_codes_con', data=[])
