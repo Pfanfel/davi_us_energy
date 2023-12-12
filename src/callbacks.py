@@ -139,11 +139,17 @@ def updateStackedEnergyChart_percentage(
         yaxis=dict(
             showgrid=True,
             gridcolor='lightgrey',  # Sets the grid line color for the x-axis
+            title="Categories",
+            title_font=dict(size=13)
         ),
         plot_bgcolor='white',  # Sets the plot background to white
-        xaxis_title="Year",
-        yaxis_title="Data",
-        title=f"{label_addition} Energy Data Over Time in Whole {dt.get_state_name(state_code)}",
+        xaxis=dict(
+            title="Years",
+            title_font=dict(size=13)
+        ),
+        title=f"Evolution of {label_addition} energy values in {dt.get_state_name(state_code)} over time",
+        title_font=dict(size=14),
+        legend=dict(x=0, y=-0.2, yanchor='top', traceorder='normal', orientation='h')
     )
 
     if len(selected_years) == 1:
@@ -322,17 +328,22 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
         legend_x=-0.05,
         legend_y=1.1,
         xaxis=dict(
-            title='Relative Data (%)',
+            title='Percentage Deviation from National Average(%)',
+            title_font=dict(size=13),
             zeroline=True,
             zerolinewidth=2,
             zerolinecolor='black',
             showgrid=True,
             gridcolor='lightgrey',
+            automargin=True,
+            tickfont=dict(size=10)
         ),
         yaxis=dict(
-            title='Category'
+            title='Categories',
+            title_font=dict(size=13)
         ),
-        title=f"Energy Data relative to the mean value for US for {dt.get_state_name(selected_state)} in  {selected_years}",
+        title=f"Deviation of energy values in {dt.get_state_name(selected_state)} from the national average in  {selected_years}",
+        title_font=dict(size=14)
     )
 
     # Centering the diverging bars
