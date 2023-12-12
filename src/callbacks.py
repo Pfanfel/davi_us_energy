@@ -657,9 +657,20 @@ def update_map_switch(on):
         return 'EnergyPerCapita', "Consumption per Capita"
 
 
+def get_coloraxis_colorbar(columnNameData_to_use):
+    if columnNameData_to_use == "EnergyPerGDP":
+        return "BTU/US dollar"
+    if columnNameData_to_use == "EnergyPerCapita":
+        return "BTU per capita"
+    return 'BTU'
+
+
 def update_map(clickData, selected_category, selected_years, is_selected_state, columnNameData_to_use="Data"):
+
     geoData = dt.geoData
-    tree = dt.consumption if columnNameData_to_use != "Data" else dt.production
+    is_consumption = columnNameData_to_use != "Data"
+    tree = dt.consumption if is_consumption else dt.production
+
     title_cat = get_title_from_MSN_code(selected_category[0], tree)
     print(f'Title category {title_cat}, column data to use: {columnNameData_to_use}')
     ##FILTERING
@@ -751,6 +762,9 @@ def update_map(clickData, selected_category, selected_years, is_selected_state, 
     # Update the layout of the entire figure
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        coloraxis_colorbar=dict(
+            title=get_coloraxis_colorbar(columnNameData_to_use)
+        )
 
     )
     return fig
