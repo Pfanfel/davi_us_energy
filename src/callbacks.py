@@ -631,16 +631,7 @@ def set_label_time_slider(on):
         return "Select Time Interval"
 
 
-# DO NOT NEED TO BE FIXED
-@app.callback(
-    Output("category-toggle", "label"),
-    Input("category-toggle", "on"),
-)
-def setLabel_categories_switch(on):
-    if on:
-        return "Combined Analysis"
-    else:
-        return "Separate Analysis"
+
 
 
 @app.callback(
@@ -867,14 +858,46 @@ def update_map_production(clickData, selected_category, selected_years, is_selec
 
 def toggle_visibility_consumption_production(multiStateSwitchValue):
     if multiStateSwitchValue == 'display_consumption':
-        return {"flex": "0", "display": "flex"}, {"flex": "0", "display": "none"}
+        return (
+                    {"flex": "0", "display": "flex"},
+                    {"flex": "0", "display": "none"},
+                    {"display": "inline-block","vertical-align": "middle", "margin-left": "10px",
+                     "transform": "scale(0.8)"}
+                )
     if multiStateSwitchValue == 'display_production':
-        return {"flex": "0", "display": "none"}, {"flex": "0", "display": "flex"}
+        return (
+                    {"flex": "0", "display": "none"},
+                    {"flex": "0", "display": "flex"},
+                    {"display": "none"}
+                )
     if multiStateSwitchValue == 'display_both':
-        return {"flex": "0", "display": "flex"}, {"flex": "0", "display": "flex"}
+        return (
+                    {"flex": "0", "display": "flex"},
+                    {"flex": "0", "display": "flex"},
+                    {"display": "inline-block", "vertical-align": "middle","margin-left": "10px","transform": "scale(0.8)"}
+                )
+
+def toggle_visibility_consumption_production_icicle(multiStateSwitchValue):
+    if multiStateSwitchValue == 'display_consumption':
+        return (
+                    {"flex": "0", "display": "flex"},
+                    {"flex": "0", "display": "none"}
+
+                )
+    if multiStateSwitchValue == 'display_production':
+        return (
+                    {"flex": "0", "display": "none"},
+                    {"flex": "0", "display": "flex"}
+
+                )
+    if multiStateSwitchValue == 'display_both':
+        return (
+                    {"flex": "0", "display": "flex"},
+                    {"flex": "0", "display": "flex"}
+                )
 
 
-###############
+
 @app.callback(
     Output("diverging-bar-chart-consumption", "style"),
     [
@@ -899,7 +922,6 @@ def show_diverging_plot_consumption(is_selected_state_pro, is_selected_cat_pro):
     return show_component_when_category_and_state_selected(is_selected_state_pro, is_selected_cat_pro)
 
 
-##########################
 @app.callback(
     Output("stacked-area-chart-consumption", "style"),
     [
@@ -936,6 +958,7 @@ def show_component_when_category_and_state_selected(clicked_map, clicked_icicle_
     [
         Output("choropleth-map-consumption", "style"),
         Output("choropleth-map-production", "style"),
+        Output("consumption-map-switch", "style")
     ],
     Input("multi-state-switch", "value"),
 )
@@ -946,9 +969,9 @@ def toggle_consumption_map_visibility(toggle_state):
 @app.callback(
     [
         Output("icicle-plot-consumption", "style"),
-        Output("icicle-plot-production", "style")
+        Output("icicle-plot-production", "style"),
     ],
     Input("multi-state-switch", "value"),
 )
 def toggle_icicle_plot_visibility(toggle_state):
-    return toggle_visibility_consumption_production(toggle_state)
+    return toggle_visibility_consumption_production_icicle(toggle_state)
