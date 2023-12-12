@@ -70,16 +70,17 @@ production_hirarchie_icicle = {
         "other production",
     ],
     "marker_colors": [
-        "aliceblue",
-        "cyan",
-        "darkblue",
-        "dimgrey",
-        "lavenderblush",
-        "orange",
-        "pink",
-        "violet",
-        "plum",
+        "#F2F3F4",
+        "#C58E48",
+        "#D18663",
+        "#B4962E",
+        "#D4DB8F",
+        "#00BFC4",
+        "#56A247",
+        "#008CA3",
+        "#809B21",
     ],
+
 }
 
 
@@ -126,29 +127,35 @@ consumption_hirarchie_icicle = {
         "consumption of interstate flow of electricity",
         "consumption of electricity net imports",
     ],
-    "marker_colors": [
-        "#1f77b4",
-        "cyan",
-        "darkblue",
-        "dimgrey",
-        "lavenderblush",
-        "orange",
-        "pink",
-        "violet",
-        "plum",
-        "maroon",
-        "red",
-        "salmon",
-        "tomato",
-        "orangered",
-        "purple",
-        "gray",
-        "limegreen",
-        "khaki",
-        "lavender",
-        "limegreen",
+    "marker_colors" : [
+        "#F2F3F4",
+        "#D99F6C",
+        "#C58E48",
+        "#D18663",
+        "#B4962E",
+        "#D4DB8F",
+        "#00BFC4",
+        "#00A3BA",
+        "#00A899",
+        "#008CA3",
+        "#008F8A",
+        "#008CA2",
+        "#009084",
+        "#00A88A",
+        "#56A247",
+        "#809B21",
+        "#34A45A",
+        "#A98FDB",
+        "#DF9695",
     ],
+
 }
+
+
+
+
+
+
 
 # Hardcoded list of values for a ui element
 
@@ -821,3 +828,5 @@ state_codes = list(states_dict.keys())
 df_states = pd.DataFrame(
     list(states_dict.items()), columns=["StateCode", "full_state_name"]
 )
+
+

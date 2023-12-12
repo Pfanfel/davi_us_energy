@@ -172,15 +172,28 @@ def updateStackedEnergyChart_percentage(
     min_year, max_year = min(selected_years), max(selected_years)
     fig.update_layout(
         shapes=[
+            # Highlight the area before the selected interval
             dict(
                 type="rect",
-                x0=min_year,
-                x1=max_year,
+                x0=1960,
+                x1=min_year,
                 y0=0,
                 y1=1,
                 xref="x",
                 yref="paper",
-                fillcolor="rgba(0,100,80,0.2)",  # Set the fill color for the selected interval
+                fillcolor="rgba(0,50,40,0.5)",
+                line=dict(width=0),
+            ),
+            # Highlight the area after the selected interval
+            dict(
+                type="rect",
+                x0=max_year,
+                x1=2021,
+                y0=0,
+                y1=1,
+                xref="x",
+                yref="paper",
+                fillcolor="rgba(0,50,40,0.5)",
                 line=dict(width=0),
             )
         ]

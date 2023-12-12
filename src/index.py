@@ -75,8 +75,6 @@ def display_page(pathname):
                 is_selected_category_pro,
                 is_selected_state_con,
                 is_selected_category_con,
-
-
             ],
             className="home",
         )
