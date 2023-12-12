@@ -6,7 +6,8 @@ from helpers.filter import (
     filterByValues,
     get_all_categories_at_same_level,
     get_MSN_code_from_title,
-    get_all_children_of_category, get_title_from_MSN_code,
+    get_all_children_of_category,
+    get_title_from_MSN_code,
 )
 from data import data as dt
 import plotly.graph_objects as go
@@ -16,15 +17,15 @@ import statistics
 
 
 def calculate_mean_for_US_for(selected_category, selected_years):
-    print(f'Selected years {selected_years} ')
+    print(f"Selected years {selected_years} ")
     current_data_df = pd.DataFrame(dt.stads_df)
     current_data_df = filterData([selected_category], current_data_df, "MSN")
-    current_data_df = filterData(['US'], current_data_df, "StateCode")
+    current_data_df = filterData(["US"], current_data_df, "StateCode")
     if len(selected_years) == 1:
         single_year = selected_years[0]
         single_year = int(single_year)
         current_data_df = current_data_df[current_data_df["Year"] == single_year]
-        data_value = current_data_df['Data'].iloc[0]
+        data_value = current_data_df["Data"].iloc[0]
         return data_value / 50
 
     elif len(selected_years) == 2:
@@ -35,162 +36,50 @@ def calculate_mean_for_US_for(selected_category, selected_years):
         current_data_df = current_data_df[
             (current_data_df["Year"] >= min_year)
             & (current_data_df["Year"] <= max_year)
-            ]
-        data_values = current_data_df['Data'].tolist()
+        ]
+        data_values = current_data_df["Data"].tolist()
         return statistics.mean(data_values) / 50
 
 
 def calculate_relative_value_for(filtered_data, mean_US_val):
     # Check if filtered_data is empty or mean_US_val is None
     if filtered_data.empty:
-        print(f'FILTERED DATA IS EMPTY')
+        print(f"FILTERED DATA IS EMPTY")
         return None
     if mean_US_val is None:
-        print('mean_US_val is None')
+        print("mean_US_val is None")
         return None
-    if filtered_data['Data'].isnull().any():
-        filtered_data['Data'].fillna(0, inplace=True)
+    if filtered_data["Data"].isnull().any():
+        filtered_data["Data"].fillna(0, inplace=True)
 
     # Calculate the relative value
-    data = filtered_data['Data'].iloc[0]
-    print(f' Data value: {data}, mean US value {mean_US_val}')
+    data = filtered_data["Data"].iloc[0]
+    print(f" Data value: {data}, mean US value {mean_US_val}")
     relative_value = ((data - mean_US_val) / mean_US_val) * 100
-    print(f'Relative data {relative_value}')
+    print(f"Relative data {relative_value}")
     return relative_value
 
-# def updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state, clickDataDifferentPlot,
-#                                          clickDataThisPlot,  selected_msn_codes, is_consumption):
-#
-#     label_addition = 'Consumption' if is_consumption else 'Production'
-#     current_data_df = pd.DataFrame(dt.stads_df)
-#     tree = dt.consumption if is_consumption else dt.production
-#     years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
-#
-#     children_of_cat = None
-#     if selected_cat is not None and selected_cat != []:
-#         print(f'selected_cat is not none: {selected_cat}')
-#         children_of_cat = get_all_children_of_category(selected_cat[0], tree)
-#         print(f'Children of selected cat: {children_of_cat}')
-#     if children_of_cat != [] and children_of_cat is not None:
-#         select_Categories = children_of_cat
-#     elif children_of_cat is None or children_of_cat == []:
-#         select_Categories = selected_cat
-#
-#     state_code = selected_state if not None else states_def
-#     print(f'updateStackedEnergyChart_percentage: Selected categories : {select_Categories}')
-#
-#     current_data_df = filterByValues(select_Categories, current_data_df)
-#     grouped_data = filterData([state_code], current_data_df, "StateCode")
-#
-#     # Group by year and calculate sum for each energy type
-#     grouped_data['label_text'] = grouped_data.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0], axis=1)
-#     fig = go.Figure()
-#     clicked = clickDataDifferentPlot is not None or clickDataThisPlot is not None
-#
-#     #grouped_data = current_data_df.groupby(["Year", 'label_text']).sum().reset_index()
-#
-#     for energy_type in grouped_data['label_text'].unique():
-#         energy_data = grouped_data[grouped_data['label_text'] == energy_type]
-#
-#         # Determine if this category should be highlighted
-#         highlight = any(msn_code in selected_msn_codes for msn_code in energy_data['MSN'].unique()) if clicked else True
-#
-#         # Set the fill color based on the highlight status
-#         fill_color = 'rgba(128, 128, 128, 0.3)' if not highlight else None
-#
-#         fig.add_trace(
-#             go.Scatter(
-#                 x=grouped_data["Year"],
-#                 y=grouped_data["Data"],
-#                 customdata=grouped_data['MSN'],
-#                 fill="tonexty",
-#                 stackgroup='one',
-#                 name=energy_type,
-#                 fillcolor=fill_color,  # Set the fill color for the trace
-#             )
-#         )
-#
-#     fig.update_layout(
-#         yaxis=dict(
-#             showgrid=True,
-#             gridcolor='lightgrey',  # Sets the grid line color for the x-axis
-#         ),
-#         plot_bgcolor='white',  # Sets the plot background to white
-#         xaxis_title="Year",
-#         yaxis_title="Data",
-#         title=f"{label_addition} Energy Data Over Time in Whole {dt.get_state_name(state_code)}",
-#     )
-#
-#     # Create a dictionary to store original colors
-#     original_colors = {}
-#
-#     # Store original colors in the dictionary
-#     for trace in fig.data:
-#         original_colors[trace.name] = trace.fillcolor
-#
-#     # Logic to update colors after click events
-#     if clickDataThisPlot or clickDataDifferentPlot:
-#         for trace in fig.data:
-#             if selected_msn_codes:
-#                 # If the MSN code of the trace is not in the selected list, set it to gray
-#                 if trace.customdata[0][0] not in selected_msn_codes:
-#                     trace.update(fillcolor='rgba(128, 128, 128, 0.3)')  # Gray color
-#                 else:
-#                     # Revert selected traces to their original color
-#                     trace.update(fillcolor=original_colors[trace.name])
-#             else:
-#                 # If no MSN codes are selected, revert all traces to original colors
-#                 trace.update(fillcolor=original_colors[trace.name])
-#
-#     if len(selected_years) == 1:
-#         fig.update_layout(
-#             shapes=[
-#                 dict(
-#                     type="line",
-#                     x0=selected_years[0],
-#                     x1=selected_years[0],
-#                     y0=0,
-#                     y1=1,
-#                     xref="x",
-#                     yref="paper",
-#                     line=dict(color="grey", width=2),
-#                 )
-#             ]
-#         )
-#         return fig
-#
-#     min_year, max_year = min(selected_years), max(selected_years)
-#     fig.update_layout(
-#         shapes=[
-#             dict(
-#                 type="rect",
-#                 x0=min_year,
-#                 x1=max_year,
-#                 y0=0,
-#                 y1=1,
-#                 xref="x",
-#                 yref="paper",
-#                 fillcolor="rgba(0,100,80,0.2)",  # Set the fill color for the selected interval
-#                 line=dict(width=0),
-#             )
-#         ]
-#     )
-#     return fig
 
-
-def updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state, clickDataDifferentPlot,
-                                        clickDataThisPlot, selected_msn_codes, is_consumption):
-    print('updateStackedEnergyChart_percentage method called')
-    label_addition = 'Consumption' if is_consumption else 'Production'
+def updateStackedEnergyChart_percentage(
+    selected_cat,
+    selected_years,
+    selected_state,
+    clickDataDifferentPlot,
+    clickDataThisPlot,
+    selected_msn_codes,
+    is_consumption,
+):
+    print("updateStackedEnergyChart_percentage method called")
+    label_addition = "Consumption" if is_consumption else "Production"
     current_data_df = pd.DataFrame(dt.stads_df)
     tree = dt.consumption if is_consumption else dt.production
     years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
 
     children_of_cat = None
     if selected_cat is not None and selected_cat != []:
-        print(f'selected_cat is not none: {selected_cat}')
+        print(f"selected_cat is not none: {selected_cat}")
         children_of_cat = get_all_children_of_category(selected_cat[0], tree)
-        print(f'Children of selected cat: {children_of_cat}')
+        print(f"Children of selected cat: {children_of_cat}")
     if children_of_cat != [] and children_of_cat is not None:
         select_Categories = children_of_cat
     elif children_of_cat is None or children_of_cat == []:
@@ -335,10 +224,9 @@ def update_stacked_energy_chart_percentage_con(selected_cat, selected_years, sel
     [
         State("selected_msn_codes_con", "data"),
         Input("stacked-area-chart-consumption", "clickData"),
-        Input("diverging-bar-chart-consumption", "clickData")
-
+        Input("diverging-bar-chart-consumption", "clickData"),
     ],
-    prevent_initial_call=True
+    prevent_initial_call=True,
 )
 def update_state_of_selected_MSN_codes_con(selected_MSN_codes, clickData_stackChart, clickData_DivChart):
     return update_state_of_selected_MSN_codes(selected_MSN_codes, clickData_stackChart, clickData_DivChart)
@@ -455,8 +343,10 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
         # Highlight the selected bars
         counter = 0  # Initialize a counter to keep track of position in bar_colors list
         for idx, row in current_data_df.iterrows():
-            if row['MSN'] in selected_msn_codes:
-                bar_colors[counter] = 'blue' if row['RelativeData'] >= 0 else 'red'
+            if row["MSN"] in selected_msn_codes:
+                bar_colors[counter] = (
+                    "#f1a340" if row["RelativeData"] >= 0 else "#998ec3"
+                )
             counter += 1  # Increment the counter for each row
 
         # Update the bar trace with the new colors
@@ -575,11 +465,24 @@ def update_overview_data_storage(current_selected_category, current_selected_sta
         Input("icicle-plot-consumption", "clickData"),
         Input("year-slider", "value"),
         Input("choropleth-map-consumption", "clickData"),
-    ], prevent_initial_call=True)
-def update_consumption_overview_data_storage(current_selected_category, current_selected_state,
-                                             selected_consumption, time_range, click_data_consumption_map):
-    return update_overview_data_storage(current_selected_category, current_selected_state,
-                                        selected_consumption, time_range, click_data_consumption_map, True)
+    ],
+    prevent_initial_call=True,
+)
+def update_consumption_overview_data_storage(
+    current_selected_category,
+    current_selected_state,
+    selected_consumption,
+    time_range,
+    click_data_consumption_map,
+):
+    return update_overview_data_storage(
+        current_selected_category,
+        current_selected_state,
+        selected_consumption,
+        time_range,
+        click_data_consumption_map,
+        True,
+    )
 
 
 @app.callback(
@@ -587,7 +490,7 @@ def update_consumption_overview_data_storage(current_selected_category, current_
         Output("production_overview_data_storage", "data"),
         Output("selected_years_pro", "data"),
         Output("selected_category_overview_pro", "data"),
-        Output("selected_states_pro", "data")
+        Output("selected_states_pro", "data"),
     ],
     [
         State("selected_category_overview_pro", "data"),
@@ -801,14 +704,17 @@ def update_map(clickData, selected_category, selected_years, is_selected_state, 
             fig.update_traces(
                 marker=dict(
                     opacity=[
-                        1.0 if state_code == selected_state else 0.3
+                        1.0 if state_code == selected_state else 0.1
                         for state_code in merged_data["StateCode"]
                     ],
                 ),
             )
     else:
-        min_range, max_range = merged_data[columnNameData_to_use].min(), merged_data[columnNameData_to_use].max()
-        print(f'min: {min_range} max: {max_range}')
+        min_range, max_range = (
+            merged_data[columnNameData_to_use].min(),
+            merged_data[columnNameData_to_use].max(),
+        )
+        print(f"min: {min_range} max: {max_range}")
         fig = px.choropleth_mapbox(
             merged_data,
             geojson=merged_data.geometry,
@@ -816,7 +722,7 @@ def update_map(clickData, selected_category, selected_years, is_selected_state, 
             mapbox_style="white-bg",
             color=columnNameData_to_use,
             range_color=(min_range, max_range),
-            color_continuous_scale='Viridis',
+            color_continuous_scale="Blugrn",
             center={"lat": 37.0902, "lon": -95.7129},
             zoom=2.5,
         )

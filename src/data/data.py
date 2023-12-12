@@ -1,4 +1,4 @@
-from src.helpers import filter as flt
+from helpers import filter as flt
 import pandas as pd
 import geopandas as gpd
 from shapely import wkt
@@ -9,15 +9,28 @@ import pandas as pd
 
 stads_df = pd.read_csv("data/stads_data_parsed_cleaned_pop_gdp_v1.csv")
 
-min_energy_data, max_energy_data = stads_df['Data'].min(), stads_df['Data'].max()
+min_energy_data, max_energy_data = stads_df["Data"].min(), stads_df["Data"].max()
 
-min_energy_GDP, max_energy_GDP = stads_df['EnergyPerGDP'].min(), stads_df['EnergyPerGDP'].max()
-min_energy_PerCapita, max_energy_PerCapita = stads_df['EnergyPerCapita'].min(), stads_df['EnergyPerCapita'].max()
+min_energy_GDP, max_energy_GDP = (
+    stads_df["EnergyPerGDP"].min(),
+    stads_df["EnergyPerGDP"].max(),
+)
+min_energy_PerCapita, max_energy_PerCapita = (
+    stads_df["EnergyPerCapita"].min(),
+    stads_df["EnergyPerCapita"].max(),
+)
 
 
 geoData = gpd.read_file("data/us_states_hexgrid.geojson.json")
-geoData['geometry'] = geoData['geometry'].simplify(tolerance=0.01)
-col_to_del_geo = ['cartodb_id', 'created_at', 'updated_at', 'label', 'bees', 'google_name']
+geoData["geometry"] = geoData["geometry"].simplify(tolerance=0.01)
+col_to_del_geo = [
+    "cartodb_id",
+    "created_at",
+    "updated_at",
+    "label",
+    "bees",
+    "google_name",
+]
 geoData.drop(columns=col_to_del_geo, inplace=True)
 
 # # Load the regular DataFrame
@@ -55,6 +68,17 @@ production_hirarchie_icicle = {
         "production of biofuels",
         "production of wood and waste",
         "other production",
+    ],
+    "marker_colors": [
+        "aliceblue",
+        "cyan",
+        "darkblue",
+        "dimgrey",
+        "lavenderblush",
+        "orange",
+        "pink",
+        "violet",
+        "plum",
     ],
 }
 
@@ -101,6 +125,28 @@ consumption_hirarchie_icicle = {
         "consumption of wind energy",
         "consumption of interstate flow of electricity",
         "consumption of electricity net imports",
+    ],
+    "marker_colors": [
+        "#1f77b4",
+        "cyan",
+        "darkblue",
+        "dimgrey",
+        "lavenderblush",
+        "orange",
+        "pink",
+        "violet",
+        "plum",
+        "maroon",
+        "red",
+        "salmon",
+        "tomato",
+        "orangered",
+        "purple",
+        "gray",
+        "limegreen",
+        "khaki",
+        "lavender",
+        "limegreen",
     ],
 }
 
@@ -252,11 +298,7 @@ production = [
         "key": "TEPRB",
         "value": "TEPRB",
         "children": [
-            {
-                "title": "production of coal",
-                "key": "CLPRB",
-                "value": "CLPRB"
-            },
+            {"title": "production of coal", "key": "CLPRB", "value": "CLPRB"},
             {
                 "title": "production of natural gas",
                 "key": "NGMPB",
@@ -280,7 +322,8 @@ production = [
                     {
                         "title": "production of biofuels",
                         "key": "BFPRB",
-                        "value": "BFPRB"},
+                        "value": "BFPRB",
+                    },
                     {
                         "title": "production of wood and waste",
                         "key": "WWPRB",
@@ -298,7 +341,6 @@ production = [
 ]
 
 
-
 consumption = [
     {
         "title": "total energy consumption",
@@ -310,10 +352,7 @@ consumption = [
                 "key": "FFTCB",
                 "value": "FFTCB",
                 "children": [
-                    {
-                        "title": "consumption of coal",
-                        "key": "CLTCB",
-                        "value": "CLTCB"},
+                    {"title": "consumption of coal", "key": "CLTCB", "value": "CLTCB"},
                     {
                         "title": "consumption of natural gas",
                         "key": "NNTCB",
@@ -386,7 +425,7 @@ consumption = [
                     {
                         "title": "consumption of wind energy",
                         "key": "WYTCB",
-                        "value": "WYTCB"
+                        "value": "WYTCB",
                     },
                 ],
             },
@@ -398,7 +437,7 @@ consumption = [
             {
                 "title": "consumption of electricity net imports",
                 "key": "ELNIB",
-                "value": "ELNIB"
+                "value": "ELNIB",
             },
         ],
     }
@@ -504,7 +543,7 @@ energy_activities = [
 
 
 def get_allCategories_for(node, allNodes):
-    allNodes.append(node['key'])
+    allNodes.append(node["key"])
 
     if "children" in node:
         for child in node["children"]:
@@ -512,12 +551,12 @@ def get_allCategories_for(node, allNodes):
 
     return allNodes
 
+
 def get_state_name(code):
-    if code == 'US':
-        return 'USA'
+    if code == "US":
+        return "USA"
     else:
         return states_dict[code]
-
 
 
 energy_categories_types = [

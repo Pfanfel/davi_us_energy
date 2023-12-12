@@ -10,8 +10,11 @@ from components.iciclePlotAPI import IciclePlot_API
 from components.variablePickerAndToggle import VariablePickerAndToggle
 from components.divergingBarChart import DivergingBarChart
 from components.stackedAreaChart import StackedAreaChart
-from src.components.multiStateSwitch import MultiStateSwitch
-from src.components.stackedItemContainer import HorizontalItemContainer, HorizontalItemContainer_Custom
+from components.multiStateSwitch import MultiStateSwitch
+from components.stackedItemContainer import (
+    HorizontalItemContainer,
+    HorizontalItemContainer_Custom,
+)
 
 """
 This file contains the navbar component of the app.
