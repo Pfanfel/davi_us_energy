@@ -1,13 +1,15 @@
 import numpy as np
 import plotly.express as px
 import pandas as pd
+from numpy import array
+
 from helpers.filter import (
     filterData,
     filterByValues,
     get_all_categories_at_same_level,
     get_MSN_code_from_title,
     get_all_children_of_category,
-    get_title_from_MSN_code,
+    get_title_from_MSN_code, get_color_from_MSN_code,
 )
 from data import data as dt
 import plotly.graph_objects as go
@@ -26,7 +28,7 @@ def calculate_mean_for_US_for(selected_category, selected_years):
         single_year = int(single_year)
         current_data_df = current_data_df[current_data_df["Year"] == single_year]
         data_value = current_data_df["Data"].iloc[0]
-        return data_value / 50
+        return data_value / 52
 
     elif len(selected_years) == 2:
         min_year, max_year = selected_years
@@ -37,13 +39,16 @@ def calculate_mean_for_US_for(selected_category, selected_years):
             (current_data_df["Year"] >= min_year)
             & (current_data_df["Year"] <= max_year)
         ]
+
+        data_value = current_data_df["Data"].iloc[0]
+
         data_values = current_data_df["Data"].tolist()
-        return statistics.mean(data_values) / 50
+        return statistics.mean(data_values) / 52
 
 
-def calculate_relative_value_for(filtered_data, mean_US_val):
+def calculate_relative_value_for(filtered_data, mean_US_val,selected_years):
     # Check if filtered_data is empty or mean_US_val is None
-    if filtered_data.empty:
+    if filtered_data is []:
         print(f"FILTERED DATA IS EMPTY")
         return None
     if mean_US_val is None:
@@ -52,8 +57,16 @@ def calculate_relative_value_for(filtered_data, mean_US_val):
     if filtered_data["Data"].isnull().any():
         filtered_data["Data"].fillna(0, inplace=True)
 
-    # Calculate the relative value
-    data = filtered_data["Data"].iloc[0]
+    # Calculate the relative value based on selected_years
+    if len(selected_years) == 1:
+        data = filtered_data["Data"].iloc[0]
+    elif len(selected_years) == 2:
+        data_values = filtered_data["Data"].tolist()
+        data = statistics.mean(data_values)
+    else:
+        print("Invalid number of selected years")
+        return None
+
     print(f" Data value: {data}, mean US value {mean_US_val}")
     relative_value = ((data - mean_US_val) / mean_US_val) * 100
     print(f"Relative data {relative_value}")
@@ -94,8 +107,8 @@ def updateStackedEnergyChart_percentage(
     print(f'State codes:  {state_code}')
 
     # Group by year and calculate sum for each energy type
-    current_data_df['label_text'] = current_data_df.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0],
-                                                          axis=1)
+    current_data_df['label_text'] = current_data_df.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0],  axis=1)
+    current_data_df['color'] = current_data_df.apply(lambda row: get_color_from_MSN_code(row['MSN'], tree)[0], axis=1)
     grouped_data = current_data_df.groupby(["Year", 'label_text']).sum().reset_index()
 
     # Initialize an empty DataFrame for cumulative data
@@ -116,11 +129,13 @@ def updateStackedEnergyChart_percentage(
             cumulative_sum['Data'] += cumulative_sum['Data_new'].fillna(0)
             cumulative_sum.drop(columns='Data_new', inplace=True)
 
+        energy_type_color = current_data_df[current_data_df['label_text'] == energy_type]['color'].iloc[0]
         # Determine if this category should be highlighted
-        highlight = any(msn_code in selected_msn_codes for msn_code in energy_data['MSN'].unique()) if clicked else True
+        highlight = any(
+            msn_code in selected_msn_codes for msn_code in energy_data['MSN'].unique()) if clicked else True
 
         # Set the fill color based on the highlight status
-        fill_color = 'rgba(128, 128, 128, 0.3)' if not highlight else None
+        fill_color = 'rgba(128, 128, 128, 0.3)' if not highlight else energy_type_color
 
         fig.add_trace(
             go.Scatter(
@@ -220,6 +235,7 @@ def update_stacked_energy_chart_percentage_production(selected_cat, selected_yea
                                                clickDataDifferentPlot, clickDataThisPlot, selected_msn_codes, False)
 
 
+
 @app.callback(
     Output("stacked-area-chart-consumption", "figure"),
     [
@@ -265,34 +281,6 @@ def update_state_of_selected_MSN_codes_pro(selected_MSN_codes, clickData_stackCh
     return update_state_of_selected_MSN_codes(selected_MSN_codes, clickData_stackChart, clickData_DivChart)
 
 
-def update_state_of_selected_MSN_codes(selected_msn_codes, clickData_stackChart, clickData_DivChart):
-    print(f'Initial MSN codes: {selected_msn_codes}')
-
-    if clickData_stackChart:
-        clicked_msn_code = clickData_stackChart['points'][0]['customdata']
-        print(f'Clicked MSN (Stack Chart): {clicked_msn_code}')
-        # Toggle selection
-        if clicked_msn_code in selected_msn_codes:
-            selected_msn_codes.remove(clicked_msn_code)  # Deselect
-            print(f'Removed {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
-        else:
-            selected_msn_codes.append(clicked_msn_code)  # Select
-            print(f'Added {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
-
-    if clickData_DivChart:
-        clicked_msn_code = clickData_DivChart['points'][0]['customdata']
-        print(f'Clicked MSN (Div Chart): {clicked_msn_code}')
-        # Toggle selection
-        if clicked_msn_code in selected_msn_codes:
-            selected_msn_codes.remove(clicked_msn_code)  # Deselect
-            print(f'Removed {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
-        else:
-            selected_msn_codes.append(clicked_msn_code)  # Select
-            print(f'Added {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
-
-    return selected_msn_codes
-
-
 def update_diverging_bar_chart(selected_cat, selected_state, selected_years, clickDataDifferentPlot, clickDataThisPlot,
                                selected_msn_codes, is_consumption):
     current_data_df = pd.DataFrame(dt.stads_df)
@@ -307,25 +295,33 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
     # Filter the data based on selected categories, state, and years
     current_data_df = filterByValues(select_Categories, current_data_df)
     current_data_df = filterData([selected_state], current_data_df, "StateCode")
-    current_data_df = filterByValues(selected_years, current_data_df)
-    current_data_df['label_text'] = current_data_df.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0],
-                                                          axis=1)
+    current_data_df = filterByValues(list(range(selected_years[0], selected_years[1] + 1)) if len(selected_years) > 1
+                                     else selected_years, current_data_df)
 
-    # Calculate relative values for each category
-    for category in current_data_df['MSN'].unique():
+    grouped_data_df = current_data_df.groupby('MSN').agg({'Data': 'mean'}).reset_index()
+
+    # Calculate label and color for each MSN code
+    grouped_data_df['label_text'] = grouped_data_df.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0], axis=1)
+    grouped_data_df['color'] = grouped_data_df.apply(lambda row: get_color_from_MSN_code(row['MSN'], tree)[0], axis=1)
+
+    # Initialize 'RelativeData' column
+    grouped_data_df['RelativeData'] = np.nan
+
+    # Process and aggregate data for each category
+    for category in grouped_data_df['MSN'].unique():
         mean_US_val = calculate_mean_for_US_for(category, selected_years)
-        filtered_data = current_data_df[current_data_df['MSN'] == category]
-        relative_values = calculate_relative_value_for(filtered_data, mean_US_val)
-        current_data_df.loc[current_data_df['MSN'] == category, 'RelativeData'] = relative_values
 
-    # Create the bar plot
+        filtered_data = grouped_data_df[grouped_data_df['MSN'] == category]
+        relative_value = calculate_relative_value_for(filtered_data, mean_US_val, selected_years)
+
+        grouped_data_df.loc[grouped_data_df['MSN'] == category, 'RelativeData'] = relative_value
+
     bar = go.Bar(
-        x=current_data_df['RelativeData'],
-        y=current_data_df['label_text'],
+        x=grouped_data_df['RelativeData'],
+        y=grouped_data_df['label_text'],
         orientation="h",
-        customdata=current_data_df['MSN'],
-        marker=dict(color=current_data_df['RelativeData']
-                    .apply(lambda x: "#f1a340" if x >= 0 else "#998ec3")),
+        customdata=grouped_data_df['MSN'],
+        marker=dict(color=grouped_data_df['color']),
         hovertemplate="Category: %{y}<br>Year: " + str(selected_years) + "<br>Relative Value: %{x}<extra></extra>",
     )
 
@@ -355,29 +351,57 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
             title='Categories',
             title_font=dict(size=13)
         ),
-        title=f"Deviation of energy values in {dt.get_state_name(selected_state)} from the national average in  {selected_years}",
+        title=f"Deviation of energy values in {selected_state} from the national average in {selected_years}",
         title_font=dict(size=14)
     )
 
     # Centering the diverging bars
-    max_abs_value = current_data_df['RelativeData'].abs().max()
+    max_abs_value = grouped_data_df['RelativeData'].abs().max()
     fig.update_xaxes(range=[-max_abs_value, max_abs_value])
 
+    # Handle click events for highlighting selected bars
     if clickDataDifferentPlot or clickDataThisPlot:
-        bar_colors = ['gray'] * len(current_data_df)
+        bar_colors = ['gray'] * len(grouped_data_df)
         # Highlight the selected bars
-        counter = 0  # Initialize a counter to keep track of position in bar_colors list
-        for idx, row in current_data_df.iterrows():
+        counter = 0
+        for idx, row in grouped_data_df.iterrows():
             if row["MSN"] in selected_msn_codes:
-                bar_colors[counter] = (
-                    "#f1a340" if row["RelativeData"] >= 0 else "#998ec3"
-                )
-            counter += 1  # Increment the counter for each row
+                bar_colors[counter] = row["color"]
+            counter += 1
 
         # Update the bar trace with the new colors
         fig.data[0].marker.color = bar_colors
 
     return fig
+
+
+def update_state_of_selected_MSN_codes(selected_msn_codes, clickData_stackChart, clickData_DivChart):
+    print(f'Initial MSN codes: {selected_msn_codes}')
+
+    if clickData_stackChart:
+        clicked_msn_code = clickData_stackChart['points'][0]['customdata']
+        print(f'Clicked MSN (Stack Chart): {clicked_msn_code}')
+        # Toggle selection
+        if clicked_msn_code in selected_msn_codes:
+            selected_msn_codes.remove(clicked_msn_code)  # Deselect
+            print(f'Removed {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
+        else:
+            selected_msn_codes.append(clicked_msn_code)  # Select
+            print(f'Added {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
+
+    if clickData_DivChart:
+        clicked_msn_code = clickData_DivChart['points'][0]['customdata']
+        print(f'Clicked MSN (Div Chart): {clicked_msn_code}')
+        # Toggle selection
+        if clicked_msn_code in selected_msn_codes:
+            selected_msn_codes.remove(clicked_msn_code)  # Deselect
+            print(f'Removed {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
+        else:
+            selected_msn_codes.append(clicked_msn_code)  # Select
+            print(f'Added {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
+
+    return selected_msn_codes
+
 
 
 @app.callback(
@@ -386,8 +410,8 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
         Input("selected_category_overview_con", "data"),
         Input("selected_states_con", "data"),
         Input("selected_years_con", "data"),
-        State("stacked-area-chart-consumption", "clickData"),
-        State("diverging-bar-chart-consumption", "clickData"),
+        Input("stacked-area-chart-consumption", "clickData"),
+        Input("diverging-bar-chart-consumption", "clickData"),
         Input("selected_msn_codes_con", "data")
     ],
     prevent_initial_call=True
@@ -404,8 +428,8 @@ def update_diverging_bar_chart_con(selected_category, selected_state, selected_y
         Input("selected_category_overview_pro", "data"),
         Input("selected_states_pro", "data"),
         Input("selected_years_pro", "data"),
-        State("stacked-area-chart-production", "clickData"),
-        State("diverging-bar-chart-production", "clickData"),
+        Input("stacked-area-chart-production", "clickData"),
+        Input("diverging-bar-chart-production", "clickData"),
         Input("selected_msn_codes_pro", "data")
     ],
     prevent_initial_call=True

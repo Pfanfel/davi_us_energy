@@ -71,6 +71,13 @@ def get_MSN_code_from_title(title, tree):
     nodes = [node["key"] for node in all_nodes if node['title'] == title]
     return nodes
 
+
+def get_color_from_MSN_code(msn, tree):
+    all_nodes = get_allNodes(tree[0],[])
+    nodes = [node["color"] for node in all_nodes if node['key'] == msn]
+    return nodes
+
+
 def get_title_from_MSN_code(msn, tree):
     all_nodes = get_allNodes(tree[0],[])
     nodes = [node["title"] for node in all_nodes if node['key'] == msn]
