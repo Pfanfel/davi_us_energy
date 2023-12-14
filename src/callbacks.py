@@ -73,6 +73,7 @@ def calculate_relative_value_for(filtered_data, mean_US_val,selected_years):
     return relative_value
 
 
+
 def updateStackedEnergyChart_percentage(
     selected_cat,
     selected_years,
@@ -283,6 +284,7 @@ def update_state_of_selected_MSN_codes_pro(selected_MSN_codes, clickData_stackCh
 
 def update_diverging_bar_chart(selected_cat, selected_state, selected_years, clickDataDifferentPlot, clickDataThisPlot,
                                selected_msn_codes, is_consumption):
+
     current_data_df = pd.DataFrame(dt.stads_df)
     tree = dt.consumption if is_consumption else dt.production
 

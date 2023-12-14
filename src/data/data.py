@@ -56,7 +56,7 @@ production_hirarchie_icicle = {
         "total energy production",
         "production of renewable energy",
         "production of renewable energy",
-        "production of renewable energy",
+        "production of renewable energy"
     ],
     "labels": [
         "total energy production",
@@ -67,21 +67,21 @@ production_hirarchie_icicle = {
         "production of renewable energy",
         "production of biofuels",
         "production of wood and waste",
-        "other production",
+        "other production"
     ],
     "marker_colors": [
-        "#F2F3F4",
-        "#C58E48",
-        "#D18663",
-        "#B4962E",
-        "#D4DB8F",
-        "#00BFC4",
-        "#56A247",
-        "#008CA3",
-        "#809B21",
-    ],
-
+        "#E0ECED",
+        "#C8A3D9",
+        "#DD9DC6",
+        "#E19FAA",
+        "#FDB883",
+        "#7CA460",
+        "#96AF5E",
+        "#A3C166",
+        "#8CD891"
+    ]
 }
+
 
 
 consumption_hirarchie_icicle = {
@@ -127,27 +127,27 @@ consumption_hirarchie_icicle = {
         "consumption of interstate flow of electricity",
         "consumption of electricity net imports",
     ],
-    "marker_colors" : [
-        "#F2F3F4",
-        "#D99F6C",
-        "#C58E48",
-        "#D18663",
-        "#B4962E",
-        "#D4DB8F",
-        "#00BFC4",
-        "#00A3BA",
-        "#00A899",
-        "#008CA3",
-        "#008F8A",
-        "#008CA2",
-        "#009084",
-        "#00A88A",
-        "#56A247",
-        "#809B21",
-        "#34A45A",
-        "#A98FDB",
-        "#DF9695",
-    ],
+    "marker_colors": [
+                        "#E0ECED",
+                        "#C096BE",
+                        "#C8A3D9",
+                        "#DD9DC6",
+                        "#E19FAA",
+                        "#FDB883",
+                        "#7CA460",
+                        "#23BAA3",
+                        "#4FB88A",
+                        "#62D39F",
+                        "#8ACF84",
+                        "#72D0A5",
+                        "#89BD8F",
+                        "#6CC0A2",
+                        "#76B571",
+                        "#96AF5E",
+                        "#B1A859",
+                        "#38a8c5",
+                        "#e7de9e",
+                    ],
 
 }
 
@@ -304,61 +304,62 @@ production = [
         "title": "total energy production",
         "key": "TEPRB",
         "value": "TEPRB",
-        "color": "#F2F3F4",
+        "color": "#E0ECED",
         "children": [
             {
                 "title": "production of coal",
                 "key": "CLPRB",
                 "value": "CLPRB",
-                "color": "#C58E48",
+                "color": "#C8A3D9"
             },
             {
                 "title": "production of natural gas",
                 "key": "NGMPB",
                 "value": "NGMPB",
-                "color": "#D18663",
+                "color": "#DD9DC6"
             },
             {
                 "title": "production of petroleum",
                 "key": "PAPRB",
                 "value": "PAPRB",
-                "color": "#B4962E",
+                "color": "#E19FAA"
             },
             {
                 "title": "production of nuclear electric power",
                 "key": "NUEGB",
                 "value": "NUEGB",
-                "color": "#D4DB8F",
+                "color": "#FDB883"
             },
             {
                 "title": "production of renewable energy",
                 "key": "REPRB",
                 "value": "REPRB",
-                "color": "#00BFC4",
+                "color": "#7CA460",
                 "children": [
                     {
                         "title": "production of biofuels",
                         "key": "BFPRB",
                         "value": "BFPRB",
-                        "color": "#56A247",
+                        "color": "#96AF5E"
                     },
                     {
                         "title": "production of wood and waste",
                         "key": "WWPRB",
                         "value": "WWPRB",
-                        "color": "#008CA3",
+                        "color": "#A3C166"
                     },
                     {
                         "title": "other production",
                         "key": "NCPRB",
                         "value": "NCPRB",
-                        "color": "#809B21",
-                    },
-                ],
-            },
-        ],
+                        "color": "#8CD891"
+                    }
+                ]
+            }
+        ]
     }
 ]
+
 
 
 consumption = [
@@ -366,123 +367,123 @@ consumption = [
         "title": "total energy consumption",
         "key": "TETCB",
         "value": "TETCB",
-        "color": "#F2F3F4",
+        "color": "#E0ECED",
         "children": [
             {
                 "title": "consumption of fossil fuels",
                 "key": "FFTCB",
                 "value": "FFTCB",
-                "color": "#D99F6C",
+                "color": "#C096BE",
                 "children": [
                     {
                         "title": "consumption of coal",
                         "key": "CLTCB",
                         "value": "CLTCB",
-                        "color": "#C58E48",
+                        "color": "#C8A3D9"
                     },
                     {
                         "title": "consumption of natural gas",
                         "key": "NNTCB",
                         "value": "NNTCB",
-                        "color": "#D18663",
+                        "color": "#DD9DC6"
                     },
                     {
                         "title": "consumption of petroleum",
                         "key": "PMTCB",
                         "value": "PMTCB",
-                        "color": "#B4962E",
-                    },
-                ],
+                        "color": "#E19FAA"
+                    }
+                ]
             },
             {
                 "title": "consumption of nuclear electric power",
                 "key": "NUETB",
                 "value": "NUETB",
-                "color": "#D4DB8F",
+                "color": "#FDB883"
             },
             {
                 "title": "consumption of renewable energy",
                 "key": "RETCB",
                 "value": "RETCB",
-                "color": "#00BFC4",
+                "color": "#7CA460",
                 "children": [
                     {
                         "title": "consumption of hydroelectric power",
                         "key": "HYTCB",
                         "value": "HYTCB",
-                        "color": "#00A3BA",
+                        "color": "#23BAA3"
                     },
                     {
                         "title": "consumption of biomass",
                         "key": "BMTCB",
                         "value": "BMTCB",
-                        "color": "#00A899",
+                        "color": "#4FB88A",
                         "children": [
                             {
                                 "title": "consumption of wood and waste",
                                 "key": "WWTCB",
                                 "value": "WWTCB",
-                                "color": "#008CA3",
+                                "color": "#62D39F"
                             },
                             {
                                 "title": "consumption of ethanol",
                                 "key": "EMTCB",
                                 "value": "EMTCB",
-                                "color": "#008F8A",
+                                "color": "#8ACF84"
                             },
                             {
                                 "title": "consumption of biodiesel",
                                 "key": "BDTCB",
                                 "value": "BDTCB",
-                                "color": "#008CA2",
+                                "color": "#72D0A5"
                             },
                             {
                                 "title": "consumption of renewable diesel",
                                 "key": "B1TCB",
                                 "value": "B1TCB",
-                                "color": "#009084",
+                                "color": "#89BD8F"
                             },
                             {
                                 "title": "energy losses and co-products (biofuels only)",
                                 "key": "EMLCB",
                                 "value": "EMLCB",
-                                "color": "#00A88A",
-                            },
-                        ],
+                                "color": "#6CC0A2"
+                            }
+                        ]
                     },
                     {
                         "title": "consumption of geothermal energy",
                         "key": "GETCB",
                         "value": "GETCB",
-                        "color": "#56A247",
+                        "color": "#76B571"
                     },
                     {
                         "title": "consumption of solar energy",
                         "key": "SOTCB",
                         "value": "SOTCB",
-                        "color": "#809B21",
+                        "color": "#96AF5E"
                     },
                     {
                         "title": "consumption of wind energy",
                         "key": "WYTCB",
                         "value": "WYTCB",
-                        "color": "#34A45A",
-                    },
-                ],
+                        "color": "#B1A859"
+                    }
+                ]
             },
             {
                 "title": "consumption of interstate flow of electricity",
                 "key": "ELISB",
                 "value": "ELISB",
-                "color": "#A98FDB",
+                "color": "#38a8c5"
             },
             {
                 "title": "consumption of electricity net imports",
                 "key": "ELNIB",
                 "value": "ELNIB",
-                "color": "#DF9695",
-            },
-        ],
+                "color": "#e7de9e"
+            }
+        ]
     }
 ]
 
