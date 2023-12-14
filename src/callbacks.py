@@ -292,8 +292,8 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
     select_Categories = selected_cat
     if selected_cat is not None and selected_cat != []:
         children_of_cat = get_all_children_of_category(selected_cat[0], tree)
-        select_Categories = children_of_cat
-
+        if children_of_cat is not None and len(children_of_cat) > 0:
+            select_Categories = children_of_cat
     # Filter the data based on selected categories, state, and years
     current_data_df = filterByValues(select_Categories, current_data_df)
     current_data_df = filterData([selected_state], current_data_df, "StateCode")
