@@ -28,7 +28,7 @@ def calculate_mean_for_US_for(selected_category, selected_years):
         single_year = int(single_year)
         current_data_df = current_data_df[current_data_df["Year"] == single_year]
         data_value = current_data_df["Data"].iloc[0]
-        return data_value / 52
+        return data_value / 50
 
     elif len(selected_years) == 2:
         min_year, max_year = selected_years
@@ -38,15 +38,13 @@ def calculate_mean_for_US_for(selected_category, selected_years):
         current_data_df = current_data_df[
             (current_data_df["Year"] >= min_year)
             & (current_data_df["Year"] <= max_year)
-        ]
-
-        data_value = current_data_df["Data"].iloc[0]
+            ]
 
         data_values = current_data_df["Data"].tolist()
-        return statistics.mean(data_values) / 52
+        return statistics.mean(data_values) / 50
 
 
-def calculate_relative_value_for(filtered_data, mean_US_val,selected_years):
+def calculate_relative_value_for(filtered_data, mean_US_val, selected_years):
     # Check if filtered_data is empty or mean_US_val is None
     if filtered_data is []:
         print(f"FILTERED DATA IS EMPTY")
@@ -68,20 +66,19 @@ def calculate_relative_value_for(filtered_data, mean_US_val,selected_years):
         return None
 
     print(f" Data value: {data}, mean US value {mean_US_val}")
-    relative_value = ((data - mean_US_val) / mean_US_val) * 100
-    print(f"Relative data {relative_value}")
-    return relative_value
-
+    if mean_US_val != 0:
+        return ((data - mean_US_val) / mean_US_val) * 100
+    return 0
 
 
 def updateStackedEnergyChart_percentage(
-    selected_cat,
-    selected_years,
-    selected_state,
-    clickDataDifferentPlot,
-    clickDataThisPlot,
-    selected_msn_codes,
-    is_consumption,
+        selected_cat,
+        selected_years,
+        selected_state,
+        clickDataDifferentPlot,
+        clickDataThisPlot,
+        selected_msn_codes,
+        is_consumption,
 ):
     print("updateStackedEnergyChart_percentage method called")
     label_addition = "Consumption" if is_consumption else "Production"
@@ -90,14 +87,13 @@ def updateStackedEnergyChart_percentage(
     years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
 
     children_of_cat = None
+    select_Categories = selected_cat
     if selected_cat is not None and selected_cat != []:
         print(f"selected_cat is not none: {selected_cat}")
         children_of_cat = get_all_children_of_category(selected_cat[0], tree)
         print(f"Children of selected cat: {children_of_cat}")
     if children_of_cat != [] and children_of_cat is not None:
         select_Categories = children_of_cat
-    elif children_of_cat is None or children_of_cat == []:
-        select_Categories = selected_cat
 
     state_code = selected_state if not None else states_def
     print(f'updateStackedEnergyChart_percentage: Selected categories : {select_Categories}')
@@ -108,7 +104,8 @@ def updateStackedEnergyChart_percentage(
     print(f'State codes:  {state_code}')
 
     # Group by year and calculate sum for each energy type
-    current_data_df['label_text'] = current_data_df.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0],  axis=1)
+    current_data_df['label_text'] = current_data_df.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0],
+                                                          axis=1)
     current_data_df['color'] = current_data_df.apply(lambda row: get_color_from_MSN_code(row['MSN'], tree)[0], axis=1)
     grouped_data = current_data_df.groupby(["Year", 'label_text']).sum().reset_index()
 
@@ -120,36 +117,37 @@ def updateStackedEnergyChart_percentage(
     # Determine if any click event has occurred
     clicked = clickDataDifferentPlot is not None or clickDataThisPlot is not None
 
-    for energy_type in grouped_data['label_text'].unique():                     # here is different
-        energy_data = grouped_data[grouped_data['label_text'] == energy_type]   # here is different
+    for energy_type in grouped_data['label_text'].unique():
+        energy_data = grouped_data[grouped_data['label_text'] == energy_type]
 
-        if cumulative_sum.empty:
-            cumulative_sum = energy_data
-        else:
-            cumulative_sum = cumulative_sum.merge(energy_data, on='Year', how='left', suffixes=('', '_new'))
-            cumulative_sum['Data'] += cumulative_sum['Data_new'].fillna(0)
-            cumulative_sum.drop(columns='Data_new', inplace=True)
+        if energy_data['Data'].iloc[0] != 0:
+            if cumulative_sum.empty:
+                cumulative_sum = energy_data
+            else:
+                cumulative_sum = cumulative_sum.merge(energy_data, on='Year', how='left', suffixes=('', '_new'))
+                cumulative_sum['Data'] += cumulative_sum['Data_new'].fillna(0)
+                cumulative_sum.drop(columns='Data_new', inplace=True)
 
-        energy_type_color = current_data_df[current_data_df['label_text'] == energy_type]['color'].iloc[0]
-        # Determine if this category should be highlighted
-        highlight = any(
-            msn_code in selected_msn_codes for msn_code in energy_data['MSN'].unique()) if clicked else True
+            energy_type_color = current_data_df[current_data_df['label_text'] == energy_type]['color'].iloc[0]
+            # Determine if this category should be highlighted
+            highlight = any(
+                msn_code in selected_msn_codes for msn_code in energy_data['MSN'].unique()) if clicked else True
 
-        # Set the fill color based on the highlight status
-        fill_color = 'rgba(128, 128, 128, 0.3)' if not highlight else energy_type_color
+            # Set the fill color based on the highlight status
+            fill_color = 'rgba(128, 128, 128, 0.3)' if not highlight else energy_type_color
 
-        fig.add_trace(
-            go.Scatter(
-                x=cumulative_sum["Year"],
-                y=cumulative_sum["Data"],
-                customdata=cumulative_sum['MSN'],
-                fill="tonexty",
-                mode="none",
-                name=energy_type,
-                stackgroup='one',
-                fillcolor=fill_color,
+            fig.add_trace(
+                go.Scatter(
+                    x=cumulative_sum["Year"],
+                    y=cumulative_sum["Data"],
+                    customdata=cumulative_sum['MSN'],
+                    fill="tonexty",
+                    mode="none",
+                    name=energy_type,
+                    stackgroup='one',
+                    fillcolor=fill_color,
+                )
             )
-        )
 
     fig.update_layout(
         yaxis=dict(
@@ -180,6 +178,7 @@ def updateStackedEnergyChart_percentage(
                     xref="x",
                     yref="paper",
                     line=dict(color="grey", width=2),
+                    fillcolor="red"
                 )
             ]
         )
@@ -236,7 +235,6 @@ def update_stacked_energy_chart_percentage_production(selected_cat, selected_yea
                                                clickDataDifferentPlot, clickDataThisPlot, selected_msn_codes, False)
 
 
-
 @app.callback(
     Output("stacked-area-chart-consumption", "figure"),
     [
@@ -284,7 +282,6 @@ def update_state_of_selected_MSN_codes_pro(selected_MSN_codes, clickData_stackCh
 
 def update_diverging_bar_chart(selected_cat, selected_state, selected_years, clickDataDifferentPlot, clickDataThisPlot,
                                selected_msn_codes, is_consumption):
-
     current_data_df = pd.DataFrame(dt.stads_df)
     tree = dt.consumption if is_consumption else dt.production
 
@@ -303,11 +300,12 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
     grouped_data_df = current_data_df.groupby('MSN').agg({'Data': 'mean'}).reset_index()
 
     # Calculate label and color for each MSN code
-    grouped_data_df['label_text'] = grouped_data_df.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0], axis=1)
+    grouped_data_df['label_text'] = grouped_data_df.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0],
+                                                          axis=1)
     grouped_data_df['color'] = grouped_data_df.apply(lambda row: get_color_from_MSN_code(row['MSN'], tree)[0], axis=1)
 
     # Initialize 'RelativeData' column
-    grouped_data_df['RelativeData'] = np.nan
+    grouped_data_df['RelativeData'] = np.zeros
 
     # Process and aggregate data for each category
     for category in grouped_data_df['MSN'].unique():
@@ -318,13 +316,20 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
 
         grouped_data_df.loc[grouped_data_df['MSN'] == category, 'RelativeData'] = relative_value
 
+    # Generate a list of patterns based on the condition
+    pattern = ["/" if x > 0 else "\\" for x in grouped_data_df['RelativeData']]
+    selected_years_str = ', '.join(map(str, selected_years))
     bar = go.Bar(
         x=grouped_data_df['RelativeData'],
         y=grouped_data_df['label_text'],
         orientation="h",
         customdata=grouped_data_df['MSN'],
-        marker=dict(color=grouped_data_df['color']),
-        hovertemplate="Category: %{y}<br>Year: " + str(selected_years) + "<br>Relative Value: %{x}<extra></extra>",
+        marker=dict(
+            color=grouped_data_df['color'],
+            pattern_shape=pattern  # Directly assign the pattern list here
+        ),
+
+        hovertemplate="Category: %{y}<br>Year: " + selected_years_str + "<br>Relative Value: %{x}<extra></extra>",
     )
 
     fig = go.Figure(data=bar)
@@ -367,15 +372,22 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
         # Highlight the selected bars
         counter = 0
         for idx, row in grouped_data_df.iterrows():
-            if row["MSN"] in selected_msn_codes:
+            if row["MSN"] in selected_msn_codes or abs(row['RelativeData']) == 100.0:
                 bar_colors[counter] = row["color"]
             counter += 1
 
         # Update the bar trace with the new colors
         fig.data[0].marker.color = bar_colors
-
     return fig
 
+def isSelectable(clickedDataPlot, dt):
+    msn_code = clickedDataPlot['points'][0]['customdata']
+    if dt[dt['MSN'] == msn_code] is not []:
+        relative_val = dt[dt['MSN'] == msn_code]['RelativeData'].iloc[0]
+        if relative_val is None or abs(relative_val) == 100.0:
+            return False
+        return True
+    return False
 
 def update_state_of_selected_MSN_codes(selected_msn_codes, clickData_stackChart, clickData_DivChart):
     print(f'Initial MSN codes: {selected_msn_codes}')
@@ -403,7 +415,6 @@ def update_state_of_selected_MSN_codes(selected_msn_codes, clickData_stackChart,
             print(f'Added {clicked_msn_code}, Updated MSN codes: {selected_msn_codes}')
 
     return selected_msn_codes
-
 
 
 @app.callback(
@@ -520,11 +531,11 @@ def update_overview_data_storage(current_selected_category, current_selected_sta
     prevent_initial_call=True,
 )
 def update_consumption_overview_data_storage(
-    current_selected_category,
-    current_selected_state,
-    selected_consumption,
-    time_range,
-    click_data_consumption_map,
+        current_selected_category,
+        current_selected_state,
+        selected_consumption,
+        time_range,
+        click_data_consumption_map,
 ):
     return update_overview_data_storage(
         current_selected_category,
@@ -557,91 +568,91 @@ def update_production_overview_data_storage(current_selected_category, current_s
                                         time_range, click_data_production_map, False)
 
 
-# CALLBACK FOE DETAILED DAATA STORAGE FOR CONSUMPTION
-@app.callback(
-    Output("consumption_detailed_data_storage", "data"),
-    [
-        State("selected_category_overview_con", "data"),
-        State("selected_states_con", "data"),
-        Input("icicle-plot-consumption", "clickData"),
-        Input("year-slider", "value"),
-        Input("choropleth-map-consumption", "clickData"),
-    ],
-    prevent_initial_call=True)
-def update_consumption_detailed_data_storage(current_selected_category,
-                                             current_selected_state, selected_consumption,
-                                             time_range, click_data_consumption_map):
-    return update_detailed_data_storage(current_selected_category,
-                                        current_selected_state,
-                                        selected_consumption, time_range,
-                                        click_data_consumption_map, True)
-
-
-@app.callback(
-    Output("production_detailed_data_storage", "data"),
-    [
-        State("selected_category_overview_pro", "data"),
-        State("selected_states_pro", "data"),
-        Input("icicle-plot-production", "clickData"),
-        Input("year-slider", "value"),
-        Input("choropleth-map-production", "clickData"),
-    ],
-    prevent_initial_call=True)
-def update_production_detailed_data_storage(current_selected_category,
-                                            current_selected_state,
-                                            selected_production, time_range, click_data_production_map):
-    return update_detailed_data_storage(current_selected_category,
-                                        current_selected_state,
-                                        selected_production, time_range,
-                                        click_data_production_map, False)
-
-
-def update_detailed_data_storage(current_selected_category, current_selected_state,
-                                 selected_cat, time_range,
-                                 click_data_map, is_consumption):
-    current_data_df = pd.DataFrame(dt.stads_df)
-    tree = dt.consumption if is_consumption else dt.production
-    years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
-
-    if not selected_cat and not time_range and not click_data_map:
-        return current_data_df.to_dict("records")
-
-    children_of_cat = None
-    if selected_cat:
-        children_of_cat = get_all_children_of_category(selected_cat["points"][0]["label"], tree)
-        print(children_of_cat)
-    if children_of_cat is not None:
-        select_Category = children_of_cat
-    elif children_of_cat is None:
-        select_Category = current_selected_category
-
-    if click_data_map:
-        state_code = click_data_map["points"][0]["text"]
-    else:
-        state_code = current_selected_state if not None else states_def
-
-    if len(time_range) == 1:
-        single_year = time_range[0]
-        single_year = int(single_year)
-        current_data_df = current_data_df[current_data_df["Year"] == single_year]
-
-    elif len(time_range) == 2:
-        min_year, max_year = time_range
-        min_year = int(min_year)
-        max_year = int(max_year)
-
-        current_data_df = current_data_df[
-            (current_data_df["Year"] >= min_year)
-            & (current_data_df["Year"] <= max_year)
-            ]
-
-    current_data_df = filterByValues(select_Category, current_data_df)
-    current_data_df = filterData([state_code], current_data_df, "StateCode")
-
-    if current_data_df.empty:
-        return dt.stads_df.to_dict("records"), time_range, select_Category, state_code
-
-    return current_data_df.to_dict("records"), time_range, select_Category, state_code
+# # CALLBACK FOE DETAILED DAATA STORAGE FOR CONSUMPTION
+# @app.callback(
+#     Output("consumption_detailed_data_storage", "data"),
+#     [
+#         State("selected_category_overview_con", "data"),
+#         State("selected_states_con", "data"),
+#         Input("icicle-plot-consumption", "clickData"),
+#         Input("year-slider", "value"),
+#         Input("choropleth-map-consumption", "clickData"),
+#     ],
+#     prevent_initial_call=True)
+# def update_consumption_detailed_data_storage(current_selected_category,
+#                                              current_selected_state, selected_consumption,
+#                                              time_range, click_data_consumption_map):
+#     return update_detailed_data_storage(current_selected_category,
+#                                         current_selected_state,
+#                                         selected_consumption, time_range,
+#                                         click_data_consumption_map, True)
+#
+#
+# @app.callback(
+#     Output("production_detailed_data_storage", "data"),
+#     [
+#         State("selected_category_overview_pro", "data"),
+#         State("selected_states_pro", "data"),
+#         Input("icicle-plot-production", "clickData"),
+#         Input("year-slider", "value"),
+#         Input("choropleth-map-production", "clickData"),
+#     ],
+#     prevent_initial_call=True)
+# def update_production_detailed_data_storage(current_selected_category,
+#                                             current_selected_state,
+#                                             selected_production, time_range, click_data_production_map):
+#     return update_detailed_data_storage(current_selected_category,
+#                                         current_selected_state,
+#                                         selected_production, time_range,
+#                                         click_data_production_map, False)
+#
+#
+# def update_detailed_data_storage(current_selected_category, current_selected_state,
+#                                  selected_cat, time_range,
+#                                  click_data_map, is_consumption):
+#     current_data_df = pd.DataFrame(dt.stads_df)
+#     tree = dt.consumption if is_consumption else dt.production
+#     years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
+#
+#     if not selected_cat and not time_range and not click_data_map:
+#         return current_data_df.to_dict("records")
+#
+#     children_of_cat = None
+#     if selected_cat:
+#         children_of_cat = get_all_children_of_category(selected_cat["points"][0]["label"], tree)
+#         print(children_of_cat)
+#     if children_of_cat is not None:
+#         select_Category = children_of_cat
+#     elif children_of_cat is None:
+#         select_Category = current_selected_category
+#
+#     if click_data_map:
+#         state_code = click_data_map["points"][0]["text"]
+#     else:
+#         state_code = current_selected_state if not None else states_def
+#
+#     if len(time_range) == 1:
+#         single_year = time_range[0]
+#         single_year = int(single_year)
+#         current_data_df = current_data_df[current_data_df["Year"] == single_year]
+#
+#     elif len(time_range) == 2:
+#         min_year, max_year = time_range
+#         min_year = int(min_year)
+#         max_year = int(max_year)
+#
+#         current_data_df = current_data_df[
+#             (current_data_df["Year"] >= min_year)
+#             & (current_data_df["Year"] <= max_year)
+#             ]
+#
+#     current_data_df = filterByValues(select_Category, current_data_df)
+#     current_data_df = filterData([state_code], current_data_df, "StateCode")
+#
+#     if current_data_df.empty:
+#         return dt.stads_df.to_dict("records"), time_range, select_Category, state_code
+#
+#     return current_data_df.to_dict("records"), time_range, select_Category, state_code
 
 
 @app.callback(
@@ -670,9 +681,6 @@ def set_label_time_slider(on):
         return "Select Time Interval"
 
 
-
-
-
 @app.callback(
     [
         Output("data_for_map_con", "data"),
@@ -696,7 +704,6 @@ def get_coloraxis_colorbar(columnNameData_to_use):
 
 
 def update_map(clickData, selected_category, selected_years, is_selected_state, columnNameData_to_use="Data"):
-
     geoData = dt.geoData
     is_consumption = columnNameData_to_use != "Data"
     tree = dt.consumption if is_consumption else dt.production
@@ -812,18 +819,6 @@ def update_is_selected_cat_info_con(is_selected_cat, current_selected_cat, click
     return update_is_selected_category_info(is_selected_cat, current_selected_cat, click_icicle)
 
 
-@app.callback(
-    Output("is_selected_category_pro", "data"),
-    [
-        State("is_selected_category_pro", "data"),
-        State("selected_category_overview_pro", "data"),
-        Input("icicle-plot-production", "clickData"),
-    ]
-)
-def update_is_selected_cat_info_pro(is_selected_cat, current_selected_cat, click_icicle):
-    return update_is_selected_category_info(is_selected_cat, current_selected_cat, click_icicle)
-
-
 def update_is_selected_category_info(is_selected_cat, current_selected_cat, click_icicle):
     if is_selected_cat or click_icicle:
         print(f'Category was selected')
@@ -842,7 +837,6 @@ def update_is_selected_category_info(is_selected_cat, current_selected_cat, clic
     ]
 )
 def update_is_selected_map_info_con(is_selected_state, current_selected_state, click_map):
-    print('update_is_selected_map_info_con was called')
     return update_is_selected_map_info(is_selected_state, current_selected_state, click_map)
 
 
@@ -856,6 +850,18 @@ def update_is_selected_map_info_con(is_selected_state, current_selected_state, c
 )
 def update_is_selected_map_info_pro(is_selected_state, current_selected_state, click_map):
     return update_is_selected_map_info(is_selected_state, current_selected_state, click_map)
+
+
+@app.callback(
+    Output("is_selected_category_pro", "data"),
+    [
+        State("is_selected_category_pro", "data"),
+        State("selected_category_overview_pro", "data"),
+        Input("icicle-plot-production", "clickData"),
+    ]
+)
+def update_is_selected_cat_info_pro(is_selected_cat, current_selected_cat, click_icicle):
+    return update_is_selected_category_info(is_selected_cat, current_selected_cat, click_icicle)
 
 
 def update_is_selected_map_info(is_selected_state, current_selected_state, click_map):
@@ -892,49 +898,50 @@ def update_map_consumption(clickData, selected_category, selected_years, is_sele
     ]
 )
 def update_map_production(clickData, selected_category, selected_years, is_selected_state_pro):
+    print('Update map PRO called')
     return update_map(clickData, selected_category, selected_years, is_selected_state_pro)
 
 
 def toggle_visibility_consumption_production(multiStateSwitchValue):
     if multiStateSwitchValue == 'display_consumption':
         return (
-                    {"flex": "0", "display": "flex"},
-                    {"flex": "0", "display": "none"},
-                    {"display": "inline-block","vertical-align": "middle", "margin-left": "10px",
-                     "transform": "scale(0.8)"}
-                )
+            {"flex": "0", "display": "flex"},
+            {"flex": "0", "display": "none"},
+            {"display": "inline-block", "vertical-align": "middle", "margin-left": "10px",
+             "transform": "scale(0.8)"}
+        )
     if multiStateSwitchValue == 'display_production':
         return (
-                    {"flex": "0", "display": "none"},
-                    {"flex": "0", "display": "flex"},
-                    {"display": "none"}
-                )
+            {"flex": "0", "display": "none"},
+            {"flex": "0", "display": "flex"},
+            {"display": "none"}
+        )
     if multiStateSwitchValue == 'display_both':
         return (
-                    {"flex": "0", "display": "flex"},
-                    {"flex": "0", "display": "flex"},
-                    {"display": "inline-block", "vertical-align": "middle","margin-left": "10px","transform": "scale(0.8)"}
-                )
+            {"flex": "0", "display": "flex"},
+            {"flex": "0", "display": "flex"},
+            {"display": "inline-block", "vertical-align": "middle", "margin-left": "10px", "transform": "scale(0.8)"}
+        )
+
 
 def toggle_visibility_consumption_production_icicle(multiStateSwitchValue):
     if multiStateSwitchValue == 'display_consumption':
         return (
-                    {"flex": "0", "display": "flex"},
-                    {"flex": "0", "display": "none"}
+            {"flex": "0", "display": "flex"},
+            {"flex": "0", "display": "none"}
 
-                )
+        )
     if multiStateSwitchValue == 'display_production':
         return (
-                    {"flex": "0", "display": "none"},
-                    {"flex": "0", "display": "flex"}
+            {"flex": "0", "display": "none"},
+            {"flex": "0", "display": "flex"}
 
-                )
+        )
     if multiStateSwitchValue == 'display_both':
         return (
-                    {"flex": "0", "display": "flex"},
-                    {"flex": "0", "display": "flex"}
-                )
-
+            {"flex": "0", "display": "flex"},
+            {"flex": "0", "display": "flex"}
+        )
 
 
 @app.callback(
@@ -943,9 +950,12 @@ def toggle_visibility_consumption_production_icicle(multiStateSwitchValue):
 
         Input("is_selected_state_con", "data"),
         Input("is_selected_category_con", "data"),
+        Input("multi-state-switch", "value"),
     ]
 )
-def show_diverging_plot_consumption(is_selected_state_con, is_selected_cat_con):
+def show_diverging_plot_consumption(is_selected_state_con, is_selected_cat_con, switch):
+    if switch == 'display_production':
+        return {"display": "none"}
     return show_component_when_category_and_state_selected(is_selected_state_con, is_selected_cat_con)
 
 
@@ -955,9 +965,12 @@ def show_diverging_plot_consumption(is_selected_state_con, is_selected_cat_con):
 
         Input("is_selected_state_pro", "data"),
         Input("is_selected_category_pro", "data"),
+        Input("multi-state-switch", "value"),
     ]
 )
-def show_diverging_plot_consumption(is_selected_state_pro, is_selected_cat_pro):
+def show_diverging_plot_production(is_selected_state_pro, is_selected_cat_pro, switch):
+    if switch == 'display_consumption':
+        return {"display": "none"}
     return show_component_when_category_and_state_selected(is_selected_state_pro, is_selected_cat_pro)
 
 
@@ -967,9 +980,12 @@ def show_diverging_plot_consumption(is_selected_state_pro, is_selected_cat_pro):
 
         Input("is_selected_state_con", "data"),
         Input("is_selected_category_con", "data"),
+        Input("multi-state-switch", "value"),
     ]
 )
-def show_stacked_plot_consumption(is_selected_state_con, is_selected_cat_con):
+def show_stacked_plot_consumption(is_selected_state_con, is_selected_cat_con, switch):
+    if switch == 'display_production':
+        return {"display": "none"}
     return show_component_when_category_and_state_selected(is_selected_state_con, is_selected_cat_con)
 
 
@@ -979,9 +995,12 @@ def show_stacked_plot_consumption(is_selected_state_con, is_selected_cat_con):
 
         Input("is_selected_state_pro", "data"),
         Input("is_selected_category_pro", "data"),
+        Input("multi-state-switch", "value"),
     ]
 )
-def show_stacked_plot_production(is_selected_state_pro, is_selected_cat_pro):
+def show_stacked_plot_production(is_selected_state_pro, is_selected_cat_pro, switch):
+    if switch == 'display_consumption':
+        return {"display": "none"}
     return show_component_when_category_and_state_selected(is_selected_state_pro, is_selected_cat_pro)
 
 
