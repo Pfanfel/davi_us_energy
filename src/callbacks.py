@@ -203,8 +203,8 @@ def updateStackedEnergyChart_percentage(
                 y1=1,
                 xref="x",
                 yref="paper",
-                fillcolor="rgba(0,50,40,0.5)",
-                line=dict(width=0),
+                line=dict(color="red", width=2),
+                fillcolor="red",
             ),
             # Highlight the area after the selected interval
             dict(
