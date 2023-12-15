@@ -71,6 +71,12 @@ def calculate_relative_value_for(filtered_data, mean_US_val, selected_years):
     return 0
 
 
+def has_any_values(data):
+    for idx, row in data.iterrows():
+        if row["Data"] != 0:
+            return True
+    return False
+
 def updateStackedEnergyChart_percentage(
         selected_cat,
         selected_years,
@@ -107,7 +113,7 @@ def updateStackedEnergyChart_percentage(
     current_data_df['label_text'] = current_data_df.apply(lambda row: get_title_from_MSN_code(row['MSN'], tree)[0],
                                                           axis=1)
     current_data_df['color'] = current_data_df.apply(lambda row: get_color_from_MSN_code(row['MSN'], tree)[0], axis=1)
-    grouped_data = current_data_df.groupby(["Year", 'label_text']).sum().reset_index()
+    grouped_data = current_data_df.groupby(["Year", 'MSN']).sum().reset_index()
 
     # Initialize an empty DataFrame for cumulative data
     cumulative_sum = pd.DataFrame()
@@ -117,10 +123,11 @@ def updateStackedEnergyChart_percentage(
     # Determine if any click event has occurred
     clicked = clickDataDifferentPlot is not None or clickDataThisPlot is not None
 
-    for energy_type in grouped_data['label_text'].unique():
+    types = grouped_data['label_text'].unique()
+    for energy_type in types:
         energy_data = grouped_data[grouped_data['label_text'] == energy_type]
-
-        if energy_data['Data'].iloc[0] != 0:
+        filtered_values_not_equal_to_zero = energy_data[energy_data['Data'] != 0]
+        if has_any_values(filtered_values_not_equal_to_zero):
             if cumulative_sum.empty:
                 cumulative_sum = energy_data
             else:
@@ -567,92 +574,6 @@ def update_production_overview_data_storage(current_selected_category, current_s
                                         selected_production,
                                         time_range, click_data_production_map, False)
 
-
-# # CALLBACK FOE DETAILED DAATA STORAGE FOR CONSUMPTION
-# @app.callback(
-#     Output("consumption_detailed_data_storage", "data"),
-#     [
-#         State("selected_category_overview_con", "data"),
-#         State("selected_states_con", "data"),
-#         Input("icicle-plot-consumption", "clickData"),
-#         Input("year-slider", "value"),
-#         Input("choropleth-map-consumption", "clickData"),
-#     ],
-#     prevent_initial_call=True)
-# def update_consumption_detailed_data_storage(current_selected_category,
-#                                              current_selected_state, selected_consumption,
-#                                              time_range, click_data_consumption_map):
-#     return update_detailed_data_storage(current_selected_category,
-#                                         current_selected_state,
-#                                         selected_consumption, time_range,
-#                                         click_data_consumption_map, True)
-#
-#
-# @app.callback(
-#     Output("production_detailed_data_storage", "data"),
-#     [
-#         State("selected_category_overview_pro", "data"),
-#         State("selected_states_pro", "data"),
-#         Input("icicle-plot-production", "clickData"),
-#         Input("year-slider", "value"),
-#         Input("choropleth-map-production", "clickData"),
-#     ],
-#     prevent_initial_call=True)
-# def update_production_detailed_data_storage(current_selected_category,
-#                                             current_selected_state,
-#                                             selected_production, time_range, click_data_production_map):
-#     return update_detailed_data_storage(current_selected_category,
-#                                         current_selected_state,
-#                                         selected_production, time_range,
-#                                         click_data_production_map, False)
-#
-#
-# def update_detailed_data_storage(current_selected_category, current_selected_state,
-#                                  selected_cat, time_range,
-#                                  click_data_map, is_consumption):
-#     current_data_df = pd.DataFrame(dt.stads_df)
-#     tree = dt.consumption if is_consumption else dt.production
-#     years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
-#
-#     if not selected_cat and not time_range and not click_data_map:
-#         return current_data_df.to_dict("records")
-#
-#     children_of_cat = None
-#     if selected_cat:
-#         children_of_cat = get_all_children_of_category(selected_cat["points"][0]["label"], tree)
-#         print(children_of_cat)
-#     if children_of_cat is not None:
-#         select_Category = children_of_cat
-#     elif children_of_cat is None:
-#         select_Category = current_selected_category
-#
-#     if click_data_map:
-#         state_code = click_data_map["points"][0]["text"]
-#     else:
-#         state_code = current_selected_state if not None else states_def
-#
-#     if len(time_range) == 1:
-#         single_year = time_range[0]
-#         single_year = int(single_year)
-#         current_data_df = current_data_df[current_data_df["Year"] == single_year]
-#
-#     elif len(time_range) == 2:
-#         min_year, max_year = time_range
-#         min_year = int(min_year)
-#         max_year = int(max_year)
-#
-#         current_data_df = current_data_df[
-#             (current_data_df["Year"] >= min_year)
-#             & (current_data_df["Year"] <= max_year)
-#             ]
-#
-#     current_data_df = filterByValues(select_Category, current_data_df)
-#     current_data_df = filterData([state_code], current_data_df, "StateCode")
-#
-#     if current_data_df.empty:
-#         return dt.stads_df.to_dict("records"), time_range, select_Category, state_code
-#
-#     return current_data_df.to_dict("records"), time_range, select_Category, state_code
 
 
 @app.callback(
