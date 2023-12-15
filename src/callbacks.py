@@ -160,7 +160,7 @@ def updateStackedEnergyChart_percentage(
         yaxis=dict(
             showgrid=True,
             gridcolor='lightgrey',  # Sets the grid line color for the x-axis
-            title="Categories",
+            title="BTU",
             title_font=dict(size=13)
         ),
         plot_bgcolor='white',  # Sets the plot background to white
@@ -184,12 +184,13 @@ def updateStackedEnergyChart_percentage(
                     y1=1,
                     xref="x",
                     yref="paper",
-                    line=dict(color="grey", width=2),
+                    line=dict(color="red", width=2),
                     fillcolor="red"
                 )
             ]
         )
         return fig
+
 
     min_year, max_year = min(selected_years), max(selected_years)
     fig.update_layout(
@@ -203,8 +204,8 @@ def updateStackedEnergyChart_percentage(
                 y1=1,
                 xref="x",
                 yref="paper",
-                line=dict(color="red", width=2),
-                fillcolor="red",
+                fillcolor="rgba(0,50,40,0.5)",
+                line=dict(width=0),
             ),
             # Highlight the area after the selected interval
             dict(
@@ -351,7 +352,7 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
         legend_x=-0.05,
         legend_y=1.1,
         xaxis=dict(
-            title='Percentage Deviation from National Average(%)',
+            title='Percentage Deviation from National Average (%)',
             title_font=dict(size=13),
             zeroline=True,
             zerolinewidth=2,
@@ -362,7 +363,7 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
             tickfont=dict(size=10)
         ),
         yaxis=dict(
-            title='BTU',
+            title='Categories',
             title_font=dict(size=13)
         ),
         title=f"Deviation of energy values in {selected_state} from the national average in {selected_years}",
@@ -637,9 +638,9 @@ def update_map_switch(on):
 
 def get_coloraxis_colorbar(columnNameData_to_use):
     if columnNameData_to_use == "EnergyPerGDP":
-        return "BTU/US dollar"
+        return "BTU/Mil. $"
     if columnNameData_to_use == "EnergyPerCapita":
-        return "BTU per capita"
+        return "BTU/Capita"
     return 'BTU'
 
 
