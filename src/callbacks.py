@@ -78,6 +78,9 @@ def has_any_values(data):
     return False
 
 def updateStackedEnergyChart_percentage(
+        prev_cat,
+        prev_state,
+        prev_years,
         selected_cat,
         selected_years,
         selected_state,
@@ -91,7 +94,8 @@ def updateStackedEnergyChart_percentage(
     current_data_df = pd.DataFrame(dt.stads_df)
     tree = dt.consumption if is_consumption else dt.production
     years_def, cats_def, states_def = get_unfiltered_years_cats_states(is_consumption)
-
+    category_was_changed = (prev_state != selected_state or not np.array_equal(prev_cat, selected_cat)
+                            or not np.array_equal(prev_years, selected_years))
     children_of_cat = None
     select_Categories = selected_cat
     if selected_cat is not None and selected_cat != []:
@@ -141,7 +145,10 @@ def updateStackedEnergyChart_percentage(
                 msn_code in selected_msn_codes for msn_code in energy_data['MSN'].unique()) if clicked else True
 
             # Set the fill color based on the highlight status
-            fill_color = 'rgba(128, 128, 128, 0.3)' if not highlight else energy_type_color
+            if highlight or category_was_changed:
+                fill_color = energy_type_color
+            else:
+                fill_color = 'rgba(128, 128, 128, 0.3)'
 
             fig.add_trace(
                 go.Scatter(
@@ -224,9 +231,70 @@ def updateStackedEnergyChart_percentage(
     return fig
 
 
+
+@app.callback(
+    Output('selected_states_prev_con', 'data'),
+    [Input('selected_states_con', 'data'),
+     State('selected_states_prev_con', 'data')],
+)
+def setPreviousStateOverviewCon(currentCategory, previousCategory):
+    return setPreviousCategoryOverview(currentCategory, previousCategory)
+
+
+@app.callback(
+    Output('selected_states_prev_pro', 'data'),
+    [Input('selected_states_pro', 'data'),
+     State('selected_states_prev_pro', 'data')],
+)
+def setPreviousStateOverviewPro(currentCategory, previousCategory):
+    return setPreviousCategoryOverview(currentCategory, previousCategory)
+
+
+
+@app.callback(
+    Output('selected_years_prev_con', 'data'),
+    [Input('selected_years_preview', 'data'),
+     State('selected_years_prev_con', 'data')],
+)
+def setPreviousYearsOverviewCon(currentCategory, previousCategory):
+    return setPreviousCategoryOverview(currentCategory, previousCategory)
+
+
+@app.callback(
+    Output('selected_years_prev_pro', 'data'),
+    [Input('selected_years_preview', 'data'),
+     State('selected_years_prev_pro', 'data')],
+)
+def setPreviousYearsOverviewPro(currentCategory, previousCategory):
+    return setPreviousCategoryOverview(currentCategory, previousCategory)
+
+@app.callback(
+    Output('selected_category_prev_overview_con', 'data'),
+    [Input('selected_category_overview_con', 'data'),
+     State('selected_category_prev_overview_con', 'data')],
+)
+def setPreviousCategoryOverviewCon(currentCategory, previousCategory):
+    return setPreviousCategoryOverview(currentCategory, previousCategory)
+
+@app.callback(
+    Output('selected_category_prev_overview_pro', 'data'),
+    [Input('selected_category_overview_pro', 'data'),
+     State('selected_category_prev_overview_pro', 'data')],
+)
+def setPreviousCategoryOverviewPro(currentCategory, previousCategory):
+    return setPreviousCategoryOverview(currentCategory, previousCategory)
+
+def setPreviousCategoryOverview(currentCategory, previousCategory):
+    if currentCategory != previousCategory:
+       return currentCategory
+
+
 @app.callback(
     Output("stacked-area-chart-production", "figure"),
     [
+        State("selected_category_prev_overview_pro", "data"),
+        State('selected_states_prev_pro', 'data'),
+        State('selected_years_prev_pro', 'data'),
         Input("selected_category_overview_pro", "data"),
         Input("selected_years_pro", "data"),
         Input("selected_states_pro", "data"),
@@ -236,16 +304,19 @@ def updateStackedEnergyChart_percentage(
     ],
     prevent_initial_call=True
 )
-def update_stacked_energy_chart_percentage_production(selected_cat, selected_years, selected_state,
+def update_stacked_energy_chart_percentage_production(prev_cat, prev_state, prev_years, selected_cat, selected_years, selected_state,
                                                       clickDataDifferentPlot,
                                                       clickDataThisPlot, selected_msn_codes):
-    return updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state,
+    return updateStackedEnergyChart_percentage(prev_cat,prev_state, prev_years, selected_cat, selected_years, selected_state,
                                                clickDataDifferentPlot, clickDataThisPlot, selected_msn_codes, False)
 
 
 @app.callback(
     Output("stacked-area-chart-consumption", "figure"),
     [
+        State("selected_category_prev_overview_con", "data"),
+        State('selected_states_prev_con', 'data'),
+        State('selected_years_prev_con', 'data'),
         Input("selected_category_overview_con", "data"),
         Input("selected_years_con", "data"),
         Input("selected_states_con", "data"),
@@ -255,9 +326,9 @@ def update_stacked_energy_chart_percentage_production(selected_cat, selected_yea
     ],
     prevent_initial_call=True
 )
-def update_stacked_energy_chart_percentage_con(selected_cat, selected_years, selected_state, clickDataDifferentPlot,
+def update_stacked_energy_chart_percentage_con(prev_cat, prev_state, prev_years, selected_cat, selected_years, selected_state, clickDataDifferentPlot,
                                                clickDataThisPlot, selected_msn_codes):
-    return updateStackedEnergyChart_percentage(selected_cat, selected_years, selected_state,
+    return updateStackedEnergyChart_percentage(prev_cat,prev_state, prev_years, selected_cat, selected_years, selected_state,
                                                clickDataDifferentPlot, clickDataThisPlot, selected_msn_codes, True)
 
 
@@ -288,11 +359,14 @@ def update_state_of_selected_MSN_codes_pro(selected_MSN_codes, clickData_stackCh
     return update_state_of_selected_MSN_codes(selected_MSN_codes, clickData_stackChart, clickData_DivChart)
 
 
-def update_diverging_bar_chart(selected_cat, selected_state, selected_years, clickDataDifferentPlot, clickDataThisPlot,
+def update_diverging_bar_chart(prev_cat, prev_state, prev_years, selected_cat, selected_state, selected_years, clickDataDifferentPlot, clickDataThisPlot,
                                selected_msn_codes, is_consumption):
     current_data_df = pd.DataFrame(dt.stads_df)
     tree = dt.consumption if is_consumption else dt.production
+    category_was_changed = (prev_state != selected_state or not np.array_equal(prev_cat, selected_cat)
+                            or not np.array_equal(prev_years, selected_years))
 
+    print(f'Category was changed:  {category_was_changed}')
     # Determine the categories to select
     select_Categories = selected_cat
     if selected_cat is not None and selected_cat != []:
@@ -374,13 +448,15 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
     max_abs_value = grouped_data_df['RelativeData'].abs().max()
     fig.update_xaxes(range=[-max_abs_value, max_abs_value])
 
+
     # Handle click events for highlighting selected bars
     if clickDataDifferentPlot or clickDataThisPlot:
         bar_colors = ['gray'] * len(grouped_data_df)
         # Highlight the selected bars
         counter = 0
         for idx, row in grouped_data_df.iterrows():
-            if row["MSN"] in selected_msn_codes or abs(row['RelativeData']) == 100.0:
+            print(f'Category was changed:  {category_was_changed}')
+            if category_was_changed or row["MSN"] in selected_msn_codes or abs(row['RelativeData']) == 100.0:
                 bar_colors[counter] = row["color"]
             counter += 1
 
@@ -428,6 +504,9 @@ def update_state_of_selected_MSN_codes(selected_msn_codes, clickData_stackChart,
 @app.callback(
     Output("diverging-bar-chart-consumption", "figure"),
     [
+        State("selected_category_prev_overview_con", "data"),
+        State('selected_states_prev_con', 'data'),
+        State('selected_years_prev_con', 'data'),
         Input("selected_category_overview_con", "data"),
         Input("selected_states_con", "data"),
         Input("selected_years_con", "data"),
@@ -437,15 +516,18 @@ def update_state_of_selected_MSN_codes(selected_msn_codes, clickData_stackChart,
     ],
     prevent_initial_call=True
 )
-def update_diverging_bar_chart_con(selected_category, selected_state, selected_year, clickDataDifferentPlot,
+def update_diverging_bar_chart_con(prev_cat, prev_state, prev_years, selected_category, selected_state, selected_year, clickDataDifferentPlot,
                                    clickDataThisPlot, selected_msn_codes):
-    return update_diverging_bar_chart(selected_category, selected_state, selected_year, clickDataDifferentPlot,
+    return update_diverging_bar_chart(prev_cat, prev_state, prev_years, selected_category, selected_state, selected_year, clickDataDifferentPlot,
                                       clickDataThisPlot, selected_msn_codes, True)
 
 
 @app.callback(
     Output("diverging-bar-chart-production", "figure"),
     [
+        State("selected_category_prev_overview_pro", "data"),
+        State('selected_states_prev_pro', 'data'),
+        State('selected_years_prev_pro', 'data'),
         Input("selected_category_overview_pro", "data"),
         Input("selected_states_pro", "data"),
         Input("selected_years_pro", "data"),
@@ -455,9 +537,9 @@ def update_diverging_bar_chart_con(selected_category, selected_state, selected_y
     ],
     prevent_initial_call=True
 )
-def update_diverging_bar_chart_prod(selected_cat, selected_state, selected_years, clickDataDifferentPlot,
+def update_diverging_bar_chart_prod(prev_cat, prev_state, prev_years, selected_cat, selected_state, selected_years, clickDataDifferentPlot,
                                     clickDataThisPlot, selected_msn_codes):
-    return update_diverging_bar_chart(selected_cat, selected_state, selected_years, clickDataDifferentPlot,
+    return update_diverging_bar_chart(prev_cat, prev_state, prev_years, selected_cat, selected_state, selected_years, clickDataDifferentPlot,
                                       clickDataThisPlot, selected_msn_codes, False)
 
 

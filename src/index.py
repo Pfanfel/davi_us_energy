@@ -25,7 +25,13 @@ from layouts import (
     consumption_map_icicle_plot_container,
     production_map_icicle_plot_container,
     selected_msn_codes_pro,
-    selected_msn_codes_con
+    selected_msn_codes_con,
+    selected_prev_category_overview_con,
+    selected_prev_category_overview_pro,
+    selected_years_prev_con,
+    selected_states_prev_con,
+    selected_years_prev_pro,
+    selected_states_prev_pro
 )
 from pages import layout_about_energy_page, layout_about_dataset_page
 from app import app
@@ -75,6 +81,13 @@ def display_page(pathname):
                 is_selected_category_pro,
                 is_selected_state_con,
                 is_selected_category_con,
+                selected_prev_category_overview_con,
+                selected_prev_category_overview_pro,
+                selected_years_prev_con,
+                selected_states_prev_con,
+                selected_years_prev_pro,
+                selected_states_prev_pro
+
             ],
             className="home",
         )

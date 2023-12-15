@@ -59,12 +59,22 @@ storage_production_overview = dcc.Store(id='production_overview_data_storage')
 storage_production_detailed = dcc.Store(id='production_detailed_data_storage')
 
 selected_category_overview_con = dcc.Store(id='selected_category_overview_con', data=['TETCB'])
+selected_prev_category_overview_con = dcc.Store(id='selected_category_prev_overview_con', data=['TETCB'])
+
 selected_years_overview_con = dcc.Store(id='selected_years_con', data=[1960])
 selected_states_con = dcc.Store(id='selected_states_con', data='US')
 
+selected_years_prev_con = dcc.Store(id='selected_years_prev_con', data=[1960])
+selected_states_prev_con = dcc.Store(id='selected_states_prev_con', data='US')
+
 selected_category_overview_pro = dcc.Store(id='selected_category_overview_pro', data=['TEPRB'])
+selected_prev_category_overview_pro = dcc.Store(id='selected_category_prev_overview_pro', data=['TEPRB'])
+
 selected_years_overview_pro = dcc.Store(id='selected_years_pro', data=[1960])
 selected_states_pro = dcc.Store(id='selected_states_pro', data='US')
+
+selected_years_prev_pro = dcc.Store(id='selected_years_prev_pro', data=[1960])
+selected_states_prev_pro = dcc.Store(id='selected_states_prev_pro', data='US')
 
 default_data_for_map_con = dcc.Store(id='data_for_map_con', data='EnergyPerCapita')
 #EnergyPerGDP
