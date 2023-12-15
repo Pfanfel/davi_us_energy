@@ -362,7 +362,7 @@ def update_diverging_bar_chart(selected_cat, selected_state, selected_years, cli
             tickfont=dict(size=10)
         ),
         yaxis=dict(
-            title='Categories',
+            title='BTU',
             title_font=dict(size=13)
         ),
         title=f"Deviation of energy values in {selected_state} from the national average in {selected_years}",
@@ -534,6 +534,7 @@ def update_overview_data_storage(current_selected_category, current_selected_sta
         Input("icicle-plot-consumption", "clickData"),
         Input("year-slider", "value"),
         Input("choropleth-map-consumption", "clickData"),
+        Input("multi-state-switch", "value"),
     ],
     prevent_initial_call=True,
 )
@@ -543,7 +544,15 @@ def update_consumption_overview_data_storage(
         selected_consumption,
         time_range,
         click_data_consumption_map,
+        multiStateSwitchValue
 ):
+    if multiStateSwitchValue == 'display_production':
+        return (
+                [],
+                get_unfiltered_years_cats_states(True)[0],
+                get_unfiltered_years_cats_states(True)[1],
+                get_unfiltered_years_cats_states(True)[2]
+        )
     return update_overview_data_storage(
         current_selected_category,
         current_selected_state,
@@ -567,9 +576,19 @@ def update_consumption_overview_data_storage(
         Input("icicle-plot-production", "clickData"),
         Input("year-slider", "value"),
         Input("choropleth-map-production", "clickData"),
+        Input("multi-state-switch", "value"),
     ], prevent_initial_call=True)
 def update_production_overview_data_storage(current_selected_category, current_selected_state,
-                                            selected_production, time_range, click_data_production_map):
+                                            selected_production, time_range,
+                                            click_data_production_map, multiStateSwitchValue):
+
+    if multiStateSwitchValue == 'display_consumption':
+        return (
+                [],
+                get_unfiltered_years_cats_states(False)[0],
+                get_unfiltered_years_cats_states(False)[1],
+                get_unfiltered_years_cats_states(False)[2]
+        )
     return update_overview_data_storage(current_selected_category, current_selected_state,
                                         selected_production,
                                         time_range, click_data_production_map, False)
