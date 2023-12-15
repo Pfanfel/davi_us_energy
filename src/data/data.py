@@ -1,4 +1,4 @@
-from src.helpers import filter as flt
+from helpers import filter as flt
 import pandas as pd
 import geopandas as gpd
 from shapely import wkt
@@ -43,7 +43,7 @@ production_hirarchie_icicle = {
         "total energy production",
         "production of renewable energy",
         "production of renewable energy",
-        "production of renewable energy"
+        "production of renewable energy",
     ],
     "labels": [
         "total energy production",
@@ -54,7 +54,7 @@ production_hirarchie_icicle = {
         "production of renewable energy",
         "production of biofuels",
         "production of wood and waste",
-        "other production"
+        "other production",
     ],
     "marker_colors": [
         "#E0ECED",
@@ -65,8 +65,8 @@ production_hirarchie_icicle = {
         "#7CA460",
         "#96AF5E",
         "#A3C166",
-        "#8CD891"
-    ]
+        "#8CD891",
+    ],
 }
 
 
@@ -113,31 +113,28 @@ consumption_hirarchie_icicle = {
         "consumption of interstate flow of electricity",
         "consumption of electricity net imports",
     ],
-
     "marker_colors": [
-                        "#E0ECED",
-                        "#C096BE",
-                        "#C8A3D9",
-                        "#DD9DC6",
-                        "#E19FAA",
-                        "#FDB883",
-                        "#7CA460",
-                        "#23BAA3",
-                        "#4FB88A",
-                        "#62D39F",
-                        "#8ACF84",
-                        "#72D0A5",
-                        "#89BD8F",
-                        "#6CC0A2",
-                        "#76B571",
-                        "#96AF5E",
-                        "#B1A859",
-                        "#38a8c5",
-                        "#e7de9e",
-                    ],
+        "#E0ECED",
+        "#C096BE",
+        "#C8A3D9",
+        "#DD9DC6",
+        "#E19FAA",
+        "#FDB883",
+        "#7CA460",
+        "#23BAA3",
+        "#4FB88A",
+        "#62D39F",
+        "#8ACF84",
+        "#72D0A5",
+        "#89BD8F",
+        "#6CC0A2",
+        "#76B571",
+        "#96AF5E",
+        "#B1A859",
+        "#38a8c5",
+        "#e7de9e",
+    ],
 }
-
-
 
 
 production = [
@@ -151,25 +148,25 @@ production = [
                 "title": "production of coal",
                 "key": "CLPRB",
                 "value": "CLPRB",
-                "color": "#C8A3D9"
+                "color": "#C8A3D9",
             },
             {
                 "title": "production of natural gas",
                 "key": "NGMPB",
                 "value": "NGMPB",
-                "color": "#DD9DC6"
+                "color": "#DD9DC6",
             },
             {
                 "title": "production of petroleum",
                 "key": "PAPRB",
                 "value": "PAPRB",
-                "color": "#E19FAA"
+                "color": "#E19FAA",
             },
             {
                 "title": "production of nuclear electric power",
                 "key": "NUEGB",
                 "value": "NUEGB",
-                "color": "#FDB883"
+                "color": "#FDB883",
             },
             {
                 "title": "production of renewable energy",
@@ -181,26 +178,25 @@ production = [
                         "title": "production of biofuels",
                         "key": "BFPRB",
                         "value": "BFPRB",
-                        "color": "#96AF5E"
+                        "color": "#96AF5E",
                     },
                     {
                         "title": "production of wood and waste",
                         "key": "WWPRB",
                         "value": "WWPRB",
-                        "color": "#A3C166"
+                        "color": "#A3C166",
                     },
                     {
                         "title": "other production",
                         "key": "NCPRB",
                         "value": "NCPRB",
-                        "color": "#8CD891"
-                    }
-                ]
-            }
-        ]
+                        "color": "#8CD891",
+                    },
+                ],
+            },
+        ],
     }
 ]
-
 
 
 consumption = [
@@ -220,27 +216,27 @@ consumption = [
                         "title": "consumption of coal",
                         "key": "CLTCB",
                         "value": "CLTCB",
-                        "color": "#C8A3D9"
+                        "color": "#C8A3D9",
                     },
                     {
                         "title": "consumption of natural gas",
                         "key": "NNTCB",
                         "value": "NNTCB",
-                        "color": "#DD9DC6"
+                        "color": "#DD9DC6",
                     },
                     {
                         "title": "consumption of petroleum",
                         "key": "PMTCB",
                         "value": "PMTCB",
-                        "color": "#E19FAA"
-                    }
-                ]
+                        "color": "#E19FAA",
+                    },
+                ],
             },
             {
                 "title": "consumption of nuclear electric power",
                 "key": "NUETB",
                 "value": "NUETB",
-                "color": "#FDB883"
+                "color": "#FDB883",
             },
             {
                 "title": "consumption of renewable energy",
@@ -252,7 +248,7 @@ consumption = [
                         "title": "consumption of hydroelectric power",
                         "key": "HYTCB",
                         "value": "HYTCB",
-                        "color": "#23BAA3"
+                        "color": "#23BAA3",
                     },
                     {
                         "title": "consumption of biomass",
@@ -264,67 +260,67 @@ consumption = [
                                 "title": "consumption of wood and waste",
                                 "key": "WWTCB",
                                 "value": "WWTCB",
-                                "color": "#62D39F"
+                                "color": "#62D39F",
                             },
                             {
                                 "title": "consumption of ethanol",
                                 "key": "EMTCB",
                                 "value": "EMTCB",
-                                "color": "#8ACF84"
+                                "color": "#8ACF84",
                             },
                             {
                                 "title": "consumption of biodiesel",
                                 "key": "BDTCB",
                                 "value": "BDTCB",
-                                "color": "#72D0A5"
+                                "color": "#72D0A5",
                             },
                             {
                                 "title": "consumption of renewable diesel",
                                 "key": "B1TCB",
                                 "value": "B1TCB",
-                                "color": "#89BD8F"
+                                "color": "#89BD8F",
                             },
                             {
                                 "title": "energy losses and co-products",
                                 "key": "EMLCB",
                                 "value": "EMLCB",
-                                "color": "#6CC0A2"
-                            }
-                        ]
+                                "color": "#6CC0A2",
+                            },
+                        ],
                     },
                     {
                         "title": "consumption of geothermal energy",
                         "key": "GETCB",
                         "value": "GETCB",
-                        "color": "#76B571"
+                        "color": "#76B571",
                     },
                     {
                         "title": "consumption of solar energy",
                         "key": "SOTCB",
                         "value": "SOTCB",
-                        "color": "#96AF5E"
+                        "color": "#96AF5E",
                     },
                     {
                         "title": "consumption of wind energy",
                         "key": "WYTCB",
                         "value": "WYTCB",
-                        "color": "#B1A859"
-                    }
-                ]
+                        "color": "#B1A859",
+                    },
+                ],
             },
             {
                 "title": "consumption of interstate flow of electricity",
                 "key": "ELISB",
                 "value": "ELISB",
-                "color": "#38a8c5"
+                "color": "#38a8c5",
             },
             {
                 "title": "consumption of electricity net imports",
                 "key": "ELNIB",
                 "value": "ELNIB",
-                "color": "#e7de9e"
-            }
-        ]
+                "color": "#e7de9e",
+            },
+        ],
     }
 ]
 
@@ -344,7 +340,6 @@ def create_hierarchy_list(node):
 
 # Assuming consumption is your hierarchical structure
 hierarchy_list = create_hierarchy_list(consumption[0])
-
 
 
 def get_allCategories_for(node, allNodes):
@@ -502,7 +497,6 @@ def calculate_avg_value(df, state_code, date_range, variable):
 
 
 def calculate_percantage_deviation_from_avg(df, state_code, date_range, variable):
-
     # Calculate the average value
     avg_value = calculate_avg_value(df, state_code, date_range, variable)
     # Filter the data frame by state code, date range and variable
@@ -522,5 +516,3 @@ state_codes = list(states_dict.keys())
 df_states = pd.DataFrame(
     list(states_dict.items()), columns=["StateCode", "full_state_name"]
 )
-
-
